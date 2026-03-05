@@ -1,0 +1,7 @@
+.ipynb*
+*_vtk
+*__pycache__
+.DS_Store
+*slurm*
+surrogate_models/
+results/

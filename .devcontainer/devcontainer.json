@@ -1,0 +1,39 @@
+{
+    "name": "SPILS-Net Container",
+    "dockerFile": "./Dockerfile",  // Path to the Dockerfile
+    "context": "..",  // Context for the Docker build (usually the project root)
+    "workspaceFolder": "/workspace",  // Default workspace directory inside the container
+    "runArgs": [
+        "--memory=32g",
+        "--memory-swap=32g"
+    ],
+    "mounts": [
+      {
+        "source": "${localWorkspaceFolder}",
+        "target": "/workspace",
+        "type": "bind",
+        "consistency": "delegated"
+      }
+    ],
+    "customizations": {
+      "vscode": {
+        "settings": {
+            "editor.tabSize": 4,
+            "files.autoSave": "onFocusChange",
+            "extensions.autoUpdate": true,
+            "extensions.ignoreRecommendations": false
+        },
+        "extensions": [
+            "ms-python.python",  // Python extension
+            "dbaeumer.vscode-eslint",  // ESLint extension
+            "ms-vscode.makefile-tools",  // Makefile extension
+            "ms-toolsai.jupyter",  // Jupyter extension
+            "codeium.codeium",  // Codeium
+            "ms-azuretools.vscode-docker",  // Docker extension
+            "ms-python.black-formatter",  // Black extension
+            "bierner.gif-player",  // gif player
+            "ms-python.flake8"  // Flake8 extension
+        ]
+      }
+    }
+  }
