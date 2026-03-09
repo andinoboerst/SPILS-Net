@@ -35,7 +35,7 @@ except (RuntimeError, ModuleNotFoundError):
 from nn_predictors.misc import train_val_test_split_tct
 from nn_predictors.lstm import LSTMNetwork
 from spilsnet import SPILSNet, set_seed
-from spilsnet_params import SPILSNET_BENCHMARK_PARAMETERS
+from spilsnet_params import SPILSNET_BENCHMARK_PARAMETERS, SPILSNET_SCALED_PARAMETERS
 
 set_seed(8)
 
@@ -49,6 +49,12 @@ for folder in [DATA_FOLDER, MODEL_FOLDER, RESULTS_FOLDER]:
     folder.mkdir(parents=True, exist_ok=True)
 
 DEFAULT_TRAIN_SIMS, DEFAULT_VAL_SIMS, DEFAULT_TEST_SIMS = train_val_test_split_tct()
+
+
+PARAMETER_CONFIGS = {
+    "benchmark": SPILSNET_BENCHMARK_PARAMETERS,
+    "scaled": SPILSNET_SCALED_PARAMETERS
+}
 
 
 @dataclass
@@ -201,7 +207,7 @@ def train_spils_net(config: SimulationConfig, resume: bool = False):
         reg = SPILSNet.load(str(model_path))
     else:
         logger.info(f"Starting new SPILS-Net training for v{config.predictor_version}")
-        reg = SPILSNet(save_path=str(model_path), **SPILSNET_BENCHMARK_PARAMETERS)
+        reg = SPILSNet(save_path=str(model_path), **PARAMETER_CONFIGS[config.problem_configuration])
 
     logger.info(f"Trainable parameters: {reg.get_trainable_params():,}")
 
@@ -319,7 +325,7 @@ def main():
     parser = argparse.ArgumentParser(description="SPILS-Net Predictor Tool")
     parser.add_argument("--method", type=str, choices=["lstm", "spils_net"], default="spils_net", help="Prediction method")
     parser.add_argument("--version", type=str, default="01", help="Predictor version label")
-    parser.add_argument("--data-version", type=str, default="benchmark", help="Data version to use")
+    parser.add_argument("--data-version", type=str, choices=["benchmark", "scaled"], default="benchmark", help="Data version to use")
     parser.add_argument("--law", type=str, choices=["elastic", "plastic"], default="plastic", help="Constitutive law")
     parser.add_argument("--freq", type=int, default=740, help="Simulation frequency")
 
