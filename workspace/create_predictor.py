@@ -28,7 +28,7 @@ logger = logging.getLogger("PredictorTool")
 try:
     from fem_sim.tct_tractions import TCTExtractTractions as Extractor, TCTApplyTractions as Applicator
     from fem_sim.progress_bar import progressbar
-except RuntimeError:
+except (RuntimeError, ModuleNotFoundError):
     logger.warning("FEM packages not installed. Cannot run FEM simulations in this script.")
 
 # Neural Network predictors
