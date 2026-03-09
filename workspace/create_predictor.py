@@ -48,7 +48,6 @@ RESULTS_FOLDER = Path("results")
 for folder in [DATA_FOLDER, MODEL_FOLDER, RESULTS_FOLDER]:
     folder.mkdir(parents=True, exist_ok=True)
 
-# Default split indices from original repository
 DEFAULT_TRAIN_SIMS, DEFAULT_VAL_SIMS, DEFAULT_TEST_SIMS = train_val_test_split_tct()
 
 
@@ -278,13 +277,13 @@ def evaluate_model(predictor: Any, config: SimulationConfig):
     final_error = errors / max(np.max(truth_norms), 1e-10)
     suffix = f"{config.data_version}_{config.predictor_method}_v{config.predictor_version}_freq{config.frequency}.npy"
 
+    tct_predict.format_results()
+    tct_error.format_results()
+
     np.save(RESULTS_FOLDER / f"sim_results_error_{suffix}", final_error)
     np.save(RESULTS_FOLDER / f"sim_results_in_{suffix}", tct_predict.data_in)
     np.save(RESULTS_FOLDER / f"sim_results_out_{suffix}", tct_predict.data_out)
     np.save(RESULTS_FOLDER / f"sim_results_internal_{suffix}", tct_predict.data_internal)
-
-    tct_predict.format_results()
-    tct_error.format_results()
 
 
 def apply_lstm(config: SimulationConfig):
@@ -319,7 +318,7 @@ def apply_spils_net(config: SimulationConfig):
 def main():
     parser = argparse.ArgumentParser(description="SPILS-Net Predictor Tool")
     parser.add_argument("--method", type=str, choices=["lstm", "spils_net"], default="spils_net", help="Prediction method")
-    parser.add_argument("--version", type=str, default="04", help="Predictor version label")
+    parser.add_argument("--version", type=str, default="01", help="Predictor version label")
     parser.add_argument("--data-version", type=str, default="benchmark", help="Data version to use")
     parser.add_argument("--law", type=str, choices=["elastic", "plastic"], default="plastic", help="Constitutive law")
     parser.add_argument("--freq", type=int, default=740, help="Simulation frequency")
