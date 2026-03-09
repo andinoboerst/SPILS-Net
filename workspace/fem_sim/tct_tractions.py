@@ -2,7 +2,7 @@ import numpy as np
 # import pickle
 
 from fem_sim.tct_sims import TCTSimulation
-from nn_predictors.spils_net import SPILSNet
+from spilsnet import SPILSNet
 
 
 class TCTExtractTractions(TCTSimulation):
@@ -66,9 +66,12 @@ class TCTApplyTractions(TCTSimulation):
         self.data_in[self.step, :] = np.concatenate([self.u_next.x.array[self.interface_dofs], self.v_next.x.array[self.interface_dofs], self.a_next.x.array[self.interface_dofs]])
 
         if self.save_internal_state:
-            self.data_internal[self.step] = self.predictor.internal_scaler.inverse_transform(self.predictor.hidden_state)
+            self.data_internal[self.step] = self.predictor.internal_scaler.inverse_transform(self.predictor.hidden_state.detach().cpu().numpy())
 
-        prediction = self.predictor.predict(self.u_next.x.array[self.interface_dofs], self.v_next.x.array[self.interface_dofs])
+        if isinstance(self.predictor, SPILSNet):
+            prediction = self.predictor.predict(self.u_next.x.array[self.interface_dofs])
+        else:
+            prediction = self.predictor.predict(self.u_next.x.array[self.interface_dofs], self.v_next.x.array[self.interface_dofs])
 
         self.data_out[self.step, :] = prediction
 

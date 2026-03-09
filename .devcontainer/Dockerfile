@@ -1,13 +1,19 @@
-FROM --platform=linux/amd64 dolfinx/dolfinx:v0.9.0-arm64
+FROM dolfinx/dolfinx:v0.9.0
 
+# Install system utilities and mesh generation core
 RUN apt-get update && \
-      apt-get -y install sudo
-
-RUN apt-get install --fix-missing -y xvfb
+      apt-get install -y --no-install-recommends sudo xvfb libgl1 libglu1-mesa && \
+      rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip
 
-RUN pip install matplotlib pandas pyvista[jupyter] trame trame-vtk jupyter imageio imageio[ffmpeg] scikit-learn torch lion_pytorch torchvision ray[tune] pygmsh
+# Install Python dependencies from requirements.txt (single source of truth)
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Set the working directory to /workspace
+# Install spilsnet-torch (SPILS-Net architecture package).
+# Replace the URL below with the public release URL once available.
+# RUN pip install --no-cache-dir git+https://github.com/andinoboerst/spilsnet-torch.git
+
+# Set the working directory
 WORKDIR /workspace

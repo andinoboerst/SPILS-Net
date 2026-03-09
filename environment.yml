@@ -1,0 +1,49 @@
+name: spils-net
+# ============================================================
+# Conda environment for local ML testing (no FEM required).
+# Create with:
+#   conda env create -f environment.yml
+#   conda activate spils-net
+#
+# Then install spilsnet-torch:
+#   pip install git+https://github.com/andinoboerst/spilsnet-torch.git
+# ============================================================
+
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.11
+  - pip
+
+  # Core scientific (conda-forge builds)
+  - numpy>=1.26,<3
+  - scikit-learn>=1.5,<2
+  - matplotlib>=3.8,<4
+  - pandas>=2.1,<3
+
+  # PyTorch (conda-managed for best platform support)
+  - pytorch>=2.2,<3
+  - torchvision>=0.17,<1
+  - cpuonly              # Remove this line if you have a CUDA GPU
+
+  # Testing
+  - pytest>=8.0,<9
+
+  - pip:
+    - lion-pytorch>=0.2,<1
+    - safetensors>=0.4,<1
+    # Hyperparameter tuning
+    - ray[tune]>=2.10,<3
+    # Visualisation
+    - pyvista[jupyter]>=0.43,<1
+    - trame>=3.5,<4
+    - trame-vtk>=2.8,<3
+    - imageio>=2.33,<3
+    - imageio[ffmpeg]
+    # Jupyter
+    - jupyter>=1.0,<2
+    # spilsnet-torch — install separately after activating env:
+    # pip install git+https://github.com/andinoboerst/spilsnet-torch.git

@@ -1,7 +1,65 @@
+# =============================================
+# Python
+# =============================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+.ipynb_checkpoints/
 .ipynb*
-*_vtk
-*__pycache__
-.DS_Store
+
+# =============================================
+# Virtual environments
+# =============================================
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# =============================================
+# Large data files
+# Data (~475 MB) is hosted on Zenodo — see README
+# =============================================
+workspace/training_data/*.npz
+workspace/training_data/*.npy
+
+# =============================================
+# FEM mesh files (auto-generated)
+# =============================================
+workspace/mesh_files/*.xdmf
+workspace/mesh_files/*.h5
+*_vtk/
+
+# =============================================
+# Model checkpoints and results (git-ignored,
+# reproduce by running create_predictor.py)
+# =============================================
+workspace/surrogate_models/
+workspace/results/
+
+# =============================================
+# FEM / VTK visualisation outputs
+# =============================================
+*.vtu
+*.pvd
+
+# =============================================
+# SLURM / HPC
+# =============================================
 *slurm*
-surrogate_models/
-results/
+*.out.bak
+
+# =============================================
+# OS and editor artefacts
+# =============================================
+.DS_Store
+Thumbs.db
+.env
+.env.*
+*.swp
+*.swo
+*.vscode

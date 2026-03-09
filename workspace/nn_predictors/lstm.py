@@ -1,4 +1,3 @@
-import pickle
 import numpy as np
 import logging
 
@@ -19,7 +18,7 @@ torch.manual_seed(8)
 
 
 class LSTMNetwork():
-    def __init__(self, X: np.ndarray, Y: np.ndarray, save_path: str = "lstm_model.pkl", gaussian_noise: list[float] = [0.1, 0.2, 0.4, 0.6]) -> None:
+    def __init__(self, input_size: int, output_size: int, save_path: str = "lstm_model.pkl") -> None:
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
         self.save_path = save_path
@@ -31,12 +30,17 @@ class LSTMNetwork():
 
         self.set_hyperparameters()
 
-        self.prep_data(X, Y, gaussian_noise=gaussian_noise)
+        # Placeholders for data preparation
+        self.input_scaler = None
+        self.output_scaler = None
+        self.train_loader = None
+        self.val_loader = None
+        self.test_loader = None
 
         # Model parameters
-        self.input_size = len(X[0][0])  # Number of features in your simulation
+        self.input_size = input_size
         self.hidden_size = 64
-        self.output_size = len(Y[0][0])  # Number of outputs to predict
+        self.output_size = output_size
 
         self.num_layers = 2
 
@@ -48,8 +52,15 @@ class LSTMNetwork():
         self.weight_decay = 1.2
         self.batch_size = 7
 
-    def prep_data(self, X, Y, gaussian_noise: list[float] = []) -> None:
-        train_sims, val_sims, test_sims = train_val_test_split_tct()
+    def prep_data(self, X, Y, train_indices=None, val_indices=None, test_indices=None, gaussian_noise: list[float] | None = None) -> None:
+        if train_indices is None or val_indices is None or test_indices is None:
+            train_sims, val_sims, test_sims = train_val_test_split_tct()
+        else:
+            train_sims, val_sims, test_sims = train_indices, val_indices, test_indices
+
+        if gaussian_noise is None:
+            gaussian_noise = [0.1, 0.2, 0.4, 0.6]
+
         self.input_scaler, train_input_data, val_input_data, test_input_data = scale_data(X, [train_sims, val_sims, test_sims])
         self.output_scaler, train_target_data, val_target_data, test_target_data = scale_data(Y, [train_sims, val_sims, test_sims])
 
@@ -79,7 +90,6 @@ class LSTMNetwork():
 
         self.optimizer_state_dict = optimizer.state_dict()
         self.save(f"{self.save_path}")
-        self.save_weights(f"{self.save_path}_weights")
 
         # Early stopping (optional)
         stop = False
@@ -88,7 +98,7 @@ class LSTMNetwork():
             self.best_val_loss = total_val_loss
             self.best_epoch = epoch
             self.save(f"{self.save_path}_best")
-            self.save_weights(f"{self.save_path}_best_weights")
+
         else:
             patience_counter += 1
             if patience_counter >= early_stop_patience:
@@ -101,7 +111,7 @@ class LSTMNetwork():
 
         return stop, patience_counter, total_val_loss
 
-    def calc_test_loss(self):
+    def calculate_test_metrics(self):
         self._model.eval()
         test_criterion = nn.L1Loss()
         test_loss = 0.0
@@ -121,23 +131,156 @@ class LSTMNetwork():
         test_loss /= len(self.test_loader)
         logger.info(f"Final Test Loss (L1): {test_loss:.8f}")
 
-    def save_weights(self, save_path: str) -> None:
-        torch.save(self._model.state_dict(), f"{save_path}.pth")
-
-    def load_weights(self, load_path: str) -> None:
-        self._model.load_state_dict(torch.load(f"{load_path}.pth", weights_only=True))
-
     def save(self, path: str) -> None:
-        with open(f"{path}.pkl", "wb") as f:
-            pickle.dump(self, f)
+        import os
+        import json
+        from safetensors.torch import save_file
+        from spilsnet.utils import serialize_scaler
+
+        path = str(path)
+        if not path.endswith(".safetensors"):
+            path = f"{path}.safetensors"
+
+        os.makedirs(os.path.dirname(path) if os.path.dirname(path) else ".", exist_ok=True)
+
+        metadata = {
+            "model_config": json.dumps({
+                "input_size": self.input_size,
+                "hidden_size": getattr(self, "hidden_size", 64),
+                "output_size": self.output_size,
+                "num_layers": getattr(self, "num_layers", 2),
+            }),
+            "hyperparameters": json.dumps({
+                "learning_rate": getattr(self, "learning_rate", 6.3e-5),
+                "num_epochs": getattr(self, "num_epochs", 4000),
+                "weight_decay": getattr(self, "weight_decay", 1.2),
+                "batch_size": getattr(self, "batch_size", 7),
+            }),
+            "training_state": json.dumps({
+                "best_val_loss": getattr(self, "best_val_loss", float('inf')),
+                "best_epoch": getattr(self, "best_epoch", 0),
+                "curr_epoch": getattr(self, "curr_epoch", 0),
+            }),
+            "scalers": json.dumps({
+                "input": serialize_scaler(self.input_scaler) if getattr(self, "input_scaler", None) is not None else None,
+                "output": serialize_scaler(self.output_scaler) if getattr(self, "output_scaler", None) is not None else None,
+            })
+        }
+
+        tensors = {k: v.contiguous() for k, v in self._model.state_dict().items()}
+
+        if getattr(self, "optimizer_state_dict", None) is not None:
+            opt_state = self.optimizer_state_dict
+            for i, group in enumerate(opt_state.get("param_groups", [])):
+                for key, val in group.items():
+                    if isinstance(val, torch.Tensor):
+                        tensors[f"optimizer.param_groups.{i}.{key}"] = val.contiguous()
+            for key, val in opt_state.get("state", {}).items():
+                for subkey, subval in val.items():
+                    if isinstance(subval, torch.Tensor):
+                        tensors[f"optimizer.state.{key}.{subkey}"] = subval.contiguous()
+
+        save_file(tensors, path, metadata=metadata)
+        logger.info(f"Model saved to {path} (Safetensors format)")
 
     @classmethod
     def load(cls, path: str) -> "LSTMNetwork":
-        with open(f"{path}.pkl", "rb") as f:
-            return pickle.load(f)
+        import os
+        import json
+        from safetensors.torch import load_file
+        from safetensors import safe_open
+        from spilsnet.utils import deserialize_scaler
+        import pickle
 
-    def fit(self) -> None:
+        path = str(path)
+        st_path = path if path.endswith(".safetensors") else f"{path}.safetensors"
+
+        if os.path.exists(st_path):
+            tensors = load_file(st_path)
+            with safe_open(st_path, framework="pt") as f_safe:
+                metadata = f_safe.metadata()
+
+            if not metadata:
+                raise ValueError(f"No metadata found in {st_path}")
+
+            model_config = json.loads(metadata["model_config"])
+            hyperparameters = json.loads(metadata["hyperparameters"])
+            training_state = json.loads(metadata["training_state"])
+            scalers_data = json.loads(metadata["scalers"])
+
+            instance = cls(
+                input_size=model_config["input_size"],
+                output_size=model_config["output_size"],
+                save_path=os.path.splitext(st_path)[0]
+            )
+            instance.hidden_size = model_config.get("hidden_size", 64)
+            instance.num_layers = model_config.get("num_layers", 2)
+
+            # Recreate model with correct parameters
+            instance._model = LSTMModel(instance.input_size, instance.hidden_size, instance.output_size, instance.num_layers)
+
+            instance.learning_rate = hyperparameters.get("learning_rate", 6.3e-5)
+            instance.num_epochs = hyperparameters.get("num_epochs", 4000)
+            instance.weight_decay = hyperparameters.get("weight_decay", 1.2)
+            instance.batch_size = hyperparameters.get("batch_size", 7)
+
+            instance.best_val_loss = training_state.get("best_val_loss", float('inf'))
+            instance.best_epoch = training_state.get("best_epoch", 0)
+            instance.curr_epoch = training_state.get("curr_epoch", 0)
+
+            instance.input_scaler = deserialize_scaler(scalers_data.get("input"))
+            instance.output_scaler = deserialize_scaler(scalers_data.get("output"))
+
+            model_tensors = {}
+            optimizer_tensors = {}
+            for k, v in tensors.items():
+                if k.startswith("optimizer."):
+                    optimizer_tensors[k] = v
+                else:
+                    model_tensors[k] = v
+
+            instance._model.load_state_dict(model_tensors)
+            instance._model.to(instance.device)
+
+            if optimizer_tensors:
+                opt_state = {"param_groups": [], "state": {}}
+                group_indices = sorted(list(set([int(k.split(".")[2]) for k in optimizer_tensors if "param_groups" in k])))
+                for i in group_indices:
+                    group = {}
+                    prefix = f"optimizer.param_groups.{i}."
+                    for k, v in optimizer_tensors.items():
+                        if k.startswith(prefix):
+                            group[k[len(prefix):]] = v
+                    opt_state["param_groups"].append(group)
+
+                state_ids = sorted(list(set([k.split(".")[2] for k in optimizer_tensors if "state" in k])))
+                for sid in state_ids:
+                    state_id = int(sid)
+                    opt_state["state"][state_id] = {}
+                    prefix = f"optimizer.state.{sid}."
+                    for k, v in optimizer_tensors.items():
+                        if k.startswith(prefix):
+                            opt_state["state"][state_id][k[len(prefix):]] = v
+                instance.optimizer_state_dict = opt_state
+
+            logger.info(f"Model loaded from {st_path} (Safetensors)")
+            return instance
+
+        # Fallback to legacy
+        pkl_path = f"{path}.pkl" if not path.endswith(".pkl") else path
+        if os.path.exists(pkl_path):
+            logger.warning(f"Safetensors not found. Falling back to legacy format: {pkl_path}")
+            with open(pkl_path, "rb") as f:
+                instance = pickle.load(f)
+                return instance
+
+        raise FileNotFoundError(f"Could not find model at {path} in either .safetensors or legacy .pkl format.")
+
+    def fit(self, X: np.ndarray, Y: np.ndarray, train_indices=None, val_indices=None, test_indices=None, gaussian_noise: list[float] | None = None) -> None:
         self._model.to(self.device)
+
+        if self.train_loader is None:
+            self.prep_data(X, Y, train_indices, val_indices, test_indices, gaussian_noise)
 
         patience_counter = 0
         early_stop_patience = 50

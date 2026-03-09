@@ -1,0 +1,21 @@
+services:
+  spils-net:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    container_name: spils-net-standalone
+    volumes:
+      - .:/workspace
+      - ../spilsnet-torch:/spilsnet-torch
+    environment:
+      - PYTHONPATH=/workspace:/spilsnet-torch:/usr/local/lib:/usr/local/dolfinx-real/lib/python3.12/dist-packages
+      - DISPLAY=host.docker.internal:0
+    # Add memory limits as requested in devcontainer.json
+    shm_size: '32gb'
+    deploy:
+      resources:
+        limits:
+          memory: 32G
+    # Standard way to keep container running if needed
+    stdin_open: true
+    tty: true

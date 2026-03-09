@@ -1,0 +1,41 @@
+# ============================================================
+# SPILS-Net — Python dependencies (ML predictor layer)
+# ============================================================
+# Install with:
+#   pip install -r requirements.txt
+#
+# NOTE: FEniCSx (dolfinx, mpi4py, petsc4py, ufl, pygmsh) is
+#       NOT included here — it is installed via the Docker Dev
+#       Container (.devcontainer/Dockerfile).
+#
+# NOTE: spilsnet-torch must be installed separately:
+#   pip install git+https://github.com/andinoboerst/spilsnet-torch.git
+# ============================================================
+
+# Core scientific
+numpy>=1.26,<3
+scikit-learn>=1.5,<2
+
+# Deep learning
+torch>=2.2,<3
+torchvision>=0.17,<1
+lion-pytorch>=0.2,<1
+safetensors>=0.4,<1
+
+# Hyperparameter tuning
+ray[tune]>=2.10,<3
+
+# Visualisation & I/O
+matplotlib>=3.8,<4
+pandas>=2.1,<3
+pyvista[jupyter]>=0.43,<1
+trame>=3.5,<4
+trame-vtk>=2.8,<3
+imageio>=2.33,<3
+imageio[ffmpeg]
+
+# Mesh generation (pygmsh in Docker, gmsh pre-installed in dolfinx)
+pygmsh>=7.1.1
+
+# Jupyter
+jupyter>=1.0,<2

@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+type: software
+title: "SPILS-Net — Results Reproduction Repository"
+abstract: >
+  Results-reproduction companion repository for the paper
+  "SPILS-Net: A Physics-Informed LSTM Surrogate for Interface Traction
+  Prediction in Domain-Decomposition Simulations".
+  Contains FEniCSx-based FEM simulation code and neural-network predictor
+  wrappers (LSTM baseline and SPILS-Net) used to generate all numerical
+  results in the paper.
+authors:
+  - family-names: "[Author Last Name]"
+    given-names: "[Author First Name]"
+    orcid: "https://orcid.org/[ORCID]"
+repository-code: "https://github.com/andinoboerst/SPILS-Net"
+license: GPL-3.0
+version: "1.0.0"
+date-released: "2026-03-05"
+doi: "[DOI — to be added upon publication]"
+keywords:
+  - neural-network surrogate
+  - domain decomposition
+  - interface tractions
+  - LSTM
+  - FEniCSx
+  - structural dynamics
+  - scientific machine learning
+preferred-citation:
+  type: article
+  title: >
+    SPILS-Net: A Physics-Informed LSTM Surrogate for Interface Traction
+    Prediction in Domain-Decomposition Simulations
+  authors:
+    - family-names: "[Author Last Name]"
+      given-names: "[Author First Name]"
+      orcid: "https://orcid.org/[ORCID]"
+  journal: "[Journal Name]"
+  year: 2026
+  doi: "[DOI — to be added upon publication]"
