@@ -59,8 +59,7 @@ class TCTSimulation(StructuralSimulation):
 
         if mesh_type == "unstructured":
 
-            filename = "workspace/mesh_files/scaled_problem_mesh.xdmf"
-            # filename = "mesh_files/scaled_problem_mesh.xdmf"
+            filename = "mesh_files/scaled_problem_mesh.xdmf"
 
             try:
                 # --- Load Mesh from XDMF ---

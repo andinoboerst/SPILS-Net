@@ -17,7 +17,7 @@ from petsc4py import PETSc
 from fem_sim.plotting import format_vectors_from_flat, create_mesh_animation
 from fem_sim.progress_bar import progressbar
 
-logger = logging.getLogger("fenicsx_sims")
+logger = logging.getLogger("structural_sims")
 
 
 class FenicsxSimulation(metaclass=abc.ABCMeta):
@@ -231,7 +231,7 @@ class FenicsxSimulation(metaclass=abc.ABCMeta):
             index = self._applied_neumann_bcs[0].index(mesh)
             L += self._applied_neumann_bcs[1][index]
         except ValueError:
-            logger.warning("No Neumann BCs applied to this function space.")
+            logger.info("No Neumann BCs applied to this function space.")
 
         return L
 

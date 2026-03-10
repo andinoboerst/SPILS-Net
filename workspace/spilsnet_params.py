@@ -82,7 +82,7 @@ SPILSNET_SCALED_HYPERPARAMETERS = {
     "early_stop_patience": 50,
     "loss_alpha": 0.9,
     "loss_beta": 0.1,
-    "loss_gamma": 0.1,
+    "loss_gamma": 0.3,
 }
 
 
