@@ -4,8 +4,8 @@
 
 > **Companion repository** to the paper:
 >
-> *"SPILS-Net: A Physics-Informed LSTM Surrogate for Interface Traction Prediction in Domain-Decomposition Simulations"*
-> — *[Authors]*, *[Journal]*, [Year]. DOI: `[to be added upon publication]`
+> *"SPILS-Net: A Gray-box Neural Network for History-Dependent Rheological Surrogate Modeling"*
+> — *Andino Börst et al.*, *[Journal]*, [Year]. DOI: `[to be added upon publication]`
 
 This repository provides all the code needed to **reproduce the numerical results** presented in the paper. It is designed to be fully reproducible — either inside the provided Docker Dev Container (recommended for FEM simulations) or in a local Python virtual environment (for training and evaluating the neural-network predictors only).
 
@@ -41,7 +41,9 @@ SPILS-Net/
 │   └── devcontainer.json
 ├── requirements.txt             # Python dependencies
 ├── environment.yml              # Conda environment for local ML testing
+├── docker-compose.yml           # Docker Compose configuration
 ├── CITATION.cff                 # Machine-readable citation
+├── Makefile                     # Build and run automation
 └── LICENSE
 ```
 
@@ -56,17 +58,17 @@ The code has **two distinct dependency layers**:
 | **FEM simulations** | FEniCSx (dolfinx), mpi4py, petsc4py, UFL, pygmsh | Docker (see below) |
 | **ML predictors** | PyTorch, scikit-learn, numpy, lion-pytorch | `requirements.txt` / `environment.yml` |
 
-> **`spilsnet-torch`**: The SPILS-Net architecture (`nn_predictors/spils_net.py`) requires the `spilsnet-torch` package. Install it separately following the instructions in the [spilsnet-torch repository](https://github.com/andinoboerst/spilsnet-torch).
+> **`spilsnet-torch`**: The SPILS-Net architecture requires the `spilsnet-torch` package. Install it separately following the instructions in the [spilsnet-torch repository](https://github.com/andinoboerst/spilsnet-torch).
 
 ---
 
 ## Getting Started
 
-### Option 1: Dev Container (Recommended — Full Reproduction)
+### Option 1: Docker Compose (Recommended — Full Reproduction)
 
-This provides the complete environment including FEniCSx for running FEM simulations.
+This provides the complete environment including FEniCSx for running FEM simulations and is the recommended approach for most users.
 
-**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) and [VS Code](https://code.visualstudio.com/) with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
+**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
 1. Clone the repository:
    ```bash
@@ -74,36 +76,28 @@ This provides the complete environment including FEniCSx for running FEM simulat
    cd SPILS-Net
    ```
 
-2. Open in VS Code and click **"Reopen in Container"** when prompted (or use `Ctrl+Shift+P` → `Dev Containers: Reopen in Container`).
-
-3. Install `spilsnet-torch` inside the container:
-   ```bash
-   pip install git+https://github.com/andinoboerst/spilsnet-torch.git
-   ```
-
-4. The working directory inside the container is `/workspace` (mapped to the repository root).
-
-### Option 2: Docker Compose (Standalone — No VS Code required)
-
-If you don't use VS Code, you can run the entire environment using Docker Compose:
-
-1. **Build the image**:
+2. **Build the image**:
    ```bash
    make build   # or: docker compose build
    ```
 
-2. **Run a shell in the container**:
+3. **Run a shell in the container**:
    ```bash
    make run     # or: docker compose run --rm spils-net /bin/bash
    ```
 
-3. **Run specific tasks from your host**:
+4. Inside the container, install `spilsnet-torch`:
+   ```bash
+   pip install git+https://github.com/andinoboerst/spilsnet-torch.git
+   ```
+
+5. **Run specific tasks from your host**:
    ```bash
    make train-lstm   # Builds and runs training
    make simulate     # Runs the evaluation simulation
    ```
 
-### Option 3: Local Virtual Environment (ML predictors only)
+### Option 2: Local Virtual Environment (ML predictors only)
 
 This option runs the neural-network training and evaluation **without** FEM simulations. You will need the pre-generated training data (see [Data Availability](#data-availability)).
 
@@ -123,59 +117,80 @@ pip install -r requirements.txt
 pip install git+https://github.com/andinoboerst/spilsnet-torch.git
 ```
 
+### Option 3: Dev Container (VS Code specific)
+
+If you use VS Code and prefer an integrated development environment, you can use the Dev Container.
+
+**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) and [VS Code](https://code.visualstudio.com/) with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/andinoboerst/SPILS-Net.git
+   cd SPILS-Net
+   ```
+
+2. Open in VS Code and click **"Reopen in Container"** when prompted (or use `Ctrl+Shift+P` → `Dev Containers: Reopen in Container`).
+
+3. Install `spilsnet-torch` inside the container:
+   ```bash
+   pip install git+https://github.com/andinoboerst/spilsnet-torch.git
+   ```
+
+4. The working directory inside the container is `/workspace` (mapped to the repository root).
+
+---
+
+## Makefile Commands
+
+The repository includes a `Makefile` to simplify common tasks. All commands can be run from the host machine (they use Docker internally) or inside the container.
+
+| Command | Description |
+|---------|-------------|
+| `make build` | Build the Docker image for the reproduction environment. |
+| `make run` | Open an interactive shell inside the Docker container. |
+| `make train` | Train the SPILS-Net model using Docker. Accepts `ARGS` for additional arguments. |
+| `make train-lstm` | Train the LSTM baseline model using Docker. Accepts `ARGS` for additional arguments. |
+| `make train-locally` | Train SPILS-Net locally (requires local Python environment). Accepts `ARGS` for additional arguments. |
+| `make train-lstm-locally` | Train LSTM locally. Accepts `ARGS` for additional arguments. |
+| `make apply` | Apply a trained SPILS-Net model to new data using Docker. Accepts `ARGS` for additional arguments. |
+| `make apply-lstm` | Apply a trained LSTM model using Docker. Accepts `ARGS` for additional arguments. |
+| `make simulate` | Run the full FEM simulation and evaluation using Docker. |
+| `make smoke-test` | Run lightweight tests (no FEM required) using Docker. |
+| `make clean` | Remove temporary files, caches, and virtual environments. |
+
+**Using ARGS:** Several commands accept an `ARGS` variable to pass additional command-line arguments to the underlying `create_predictor.py` script. For example:
+- `make train ARGS="--data-version scaled --law plastic --version 02"`
+- `make apply ARGS="--freq 1000"`
+
+Run `python workspace/create_predictor.py --help` to see all available options.
+
 ---
 
 ## Usage
 
-All commands should be run from the **repository root** (or `/workspace` inside the container).
+The recommended way to run the code is through the [Makefile commands](#makefile-commands) described above, which handle the Docker setup and argument passing automatically.
 
-> **Note:** In the Dev Container, the working directory is `/workspace`, so paths like `workspace/training_data/...` resolve correctly.
+For advanced users or custom configurations, you can run the main script directly:
 
-### 1. Generate Training Data (requires FEM / Dev Container)
-
-Edit the configuration at the top of `workspace/create_predictor.py`:
-```python
-constitutive_law = "plastic"        # "elastic" or "plastic"
-problem_configuration = "benchmark" # "benchmark" or "scaled"
-training_set_exists = False         # Set to False to generate
-```
-Then run:
 ```bash
 cd workspace
-python create_predictor.py
+python create_predictor.py --help  # See available options
 ```
-This will populate `workspace/training_data/` with `.npz` files.
 
-### 2. Train a predictor
+Common usage patterns:
+- Generate training data: `python create_predictor.py --generate --data-version benchmark --law plastic`
+- Train a model: `python create_predictor.py --train --method spils_net --data-version benchmark`
+- Evaluate a model: `python create_predictor.py --apply --method spils_net --data-version benchmark`
 
-Set `training_set_exists = True` and choose the method:
-```python
-predictor_method = "spils_net"  # or "lstm"
-predictor_model_exists = False
-```
-Then run `python workspace/create_predictor.py` again.
-
-Training logs and checkpoints are saved to `workspace/surrogate_models/`.
-
-### 3. Evaluate a predictor
-
-Set `predictor_model_exists = True` to skip training and only run the FEM evaluation:
-```bash
-python workspace/create_predictor.py
-```
-Results are saved to `workspace/results/`.
+All commands should be run from the **repository root** (or `/workspace` inside the container).
 
 ---
 
 ## Data Availability
 
-The pre-generated training datasets (`workspace/training_data/*.npz`, ~475 MB total) are too large to store in Git. They are available at:
+The pre-generated training datasets are included in the repository at `workspace/training_data/*.npz`. These datasets contain the training data for both benchmark and scaled configurations.
 
-> **[Zenodo / Figshare — DOI: `to be added`]**
-
-Download and place the files in `workspace/training_data/` before running training.
-
-Alternatively, you can generate the data from scratch using the Dev Container (see Step 1 above).
+If you need to regenerate the data from scratch (e.g., for different parameters), you can do so using the Dev Container or Docker Compose setup with FEM capabilities.
 
 ---
 
@@ -207,19 +222,33 @@ python -m pytest tests/smoke_test.py -v
 
 ## Citation
 
-If you use this code in your research, please cite:
+If you use this code in your research, please cite the associated paper and this repository.
 
+### Paper Citation
 ```bibtex
-@article{spilsnet2026,
-  title   = {SPILS-Net: A Physics-Informed LSTM Surrogate for Interface Traction Prediction in Domain-Decomposition Simulations},
-  author  = {[Authors]},
-  journal = {[Journal]},
-  year    = {2026},
-  doi     = {[DOI]}
+@article{boerst2026spilsnet,
+  title={SPILS-Net: A Gray-box Neural Network for History-Dependent Rheological Surrogate Modeling},
+  author={Börst, Andino and Díez, Pedro and Zlotnik, Sergio and Cavaliere, Fabiola and Curtosi, Gabriel and Larráyoz, Xabier},
+  journal={[Journal Name]},
+  year={2026},
+  doi={[DOI — to be added upon publication]}
 }
 ```
 
-See also [`CITATION.cff`](CITATION.cff) for machine-readable citation metadata.
+### Software Citation
+```bibtex
+@software{boerst_spils_net_2026,
+  author={Börst, Andino},
+  title={SPILS-Net — Results Reproduction Repository},
+  year={2026},
+  publisher={GitHub},
+  url={https://github.com/andinoboerst/SPILS-Net},
+  doi={[DOI — to be added upon publication]},
+  version={1.0.0}
+}
+```
+
+For machine-readable citation metadata, see [`CITATION.cff`](CITATION.cff).
 
 ---
 
