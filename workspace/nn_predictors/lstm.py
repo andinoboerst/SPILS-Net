@@ -326,7 +326,7 @@ class LSTMNetwork():
 
         logger.info('Training finished!')
 
-        self.calc_test_loss()
+        self.calculate_test_metrics()
 
     def initialize_memory_variables(self) -> None:
         self._model.eval()
