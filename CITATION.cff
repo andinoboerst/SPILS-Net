@@ -10,15 +10,16 @@ abstract: >
   wrappers (LSTM baseline and SPILS-Net) used to generate all numerical
   results in the paper.
 authors:
-  - family-names: "[Author Last Name]"
-    given-names: "[Author First Name]"
-    orcid: "https://orcid.org/[ORCID]"
+  - family-names: "Börst"
+    given-names: "Andino"
+    orcid: "https://orcid.org/0009-0005-0222-3851"
 repository-code: "https://github.com/andinoboerst/SPILS-Net"
-license: GPL-3.0
+license: AGPL-3.0
 version: "1.0.0"
 date-released: "2026-03-05"
 doi: "[DOI — to be added upon publication]"
 keywords:
+  - SPILS-Net
   - neural-network surrogate
   - domain decomposition
   - interface tractions
@@ -29,12 +30,21 @@ keywords:
 preferred-citation:
   type: article
   title: >
-    SPILS-Net: A Physics-Informed LSTM Surrogate for Interface Traction
-    Prediction in Domain-Decomposition Simulations
+    SPILS-Net: A Gray-box Neural Network for History-Dependent Rheological Surrogate Modeling
   authors:
-    - family-names: "[Author Last Name]"
-      given-names: "[Author First Name]"
-      orcid: "https://orcid.org/[ORCID]"
+    - family-names: "Börst"
+      given-names: "Andino"
+      orcid: "https://orcid.org/0009-0005-0222-3851"
+    - family-names: "Díez"
+      given-names: "Pedro"
+    - family-names: "Zlotnik"
+      given-names: "Sergio"
+    - family-names: "Cavaliere"
+      given-names: "Fabiola"
+    - family-names: "Curtosi"
+      given-names: "Gabriel"
+    - family-names: "Larráyoz"
+      given-names: "Xabier"
   journal: "[Journal Name]"
   year: 2026
   doi: "[DOI — to be added upon publication]"
