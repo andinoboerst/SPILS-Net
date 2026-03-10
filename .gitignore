@@ -26,12 +26,6 @@ build/
 *_vtk/
 
 # =============================================
-# Model checkpoints and results (git-ignored,
-# reproduce by running create_predictor.py)
-# =============================================
-workspace/surrogate_models/
-
-# =============================================
 # FEM / VTK visualisation outputs
 # =============================================
 *.vtu

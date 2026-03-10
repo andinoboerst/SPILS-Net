@@ -1,0 +1,574 @@
+Start: Mon Mar 9 17:12:59 CET 2026
+I ran on:
+clone-1-55
+This module does not load any PETSc installation. You should set PETSC_DIR, PETSC_ARCH and LD_LIBRARY_PATH to a local installation. 
+For example:
+export PETSC_DIR=your-petsc-dir
+export PETSC_ARCH=arch-linux-c-opt
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$PETSC_DIR/$PETSC_ARCH/lib"
+
+
+To install the library, run pip install . in the folder where you downloaded the encapsulatedpgd repo
+
+
+Defaulting to user installation because normal site-packages is not writeable
+Requirement already satisfied: numpy in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (2.2.5)
+Requirement already satisfied: torch in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (2.7.0)
+Requirement already satisfied: scikit-learn in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (1.6.1)
+Requirement already satisfied: lion_pytorch in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (0.2.3)
+Requirement already satisfied: ray[tune] in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (2.47.1)
+Requirement already satisfied: typing-extensions>=4.10.0 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (4.13.2)
+Requirement already satisfied: nvidia-cudnn-cu12==9.5.1.17 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (9.5.1.17)
+Requirement already satisfied: nvidia-cublas-cu12==12.6.4.1 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (12.6.4.1)
+Requirement already satisfied: nvidia-cuda-cupti-cu12==12.6.80 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (12.6.80)
+Requirement already satisfied: nvidia-cuda-nvrtc-cu12==12.6.77 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (12.6.77)
+Requirement already satisfied: nvidia-cusolver-cu12==11.7.1.2 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (11.7.1.2)
+Requirement already satisfied: nvidia-nccl-cu12==2.26.2 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (2.26.2)
+Requirement already satisfied: sympy>=1.13.3 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (1.14.0)
+Requirement already satisfied: jinja2 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from torch) (3.1.2)
+Requirement already satisfied: nvidia-cuda-runtime-cu12==12.6.77 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (12.6.77)
+Requirement already satisfied: nvidia-nvtx-cu12==12.6.77 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (12.6.77)
+Requirement already satisfied: filelock in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from torch) (3.8.0)
+Requirement already satisfied: nvidia-cusparselt-cu12==0.6.3 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (0.6.3)
+Requirement already satisfied: nvidia-cufile-cu12==1.11.1.6 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (1.11.1.6)
+Requirement already satisfied: triton==3.3.0 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (3.3.0)
+Requirement already satisfied: fsspec in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from torch) (2022.11.0)
+Requirement already satisfied: nvidia-cusparse-cu12==12.5.4.2 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (12.5.4.2)
+Requirement already satisfied: nvidia-nvjitlink-cu12==12.6.85 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (12.6.85)
+Requirement already satisfied: nvidia-curand-cu12==10.3.7.77 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (10.3.7.77)
+Requirement already satisfied: nvidia-cufft-cu12==11.3.0.4 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (11.3.0.4)
+Requirement already satisfied: networkx in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch) (3.4.2)
+Requirement already satisfied: setuptools>=40.8.0 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from triton==3.3.0->torch) (63.4.3)
+Requirement already satisfied: scipy>=1.6.0 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from scikit-learn) (1.15.2)
+Requirement already satisfied: threadpoolctl>=3.1.0 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from scikit-learn) (3.1.0)
+Requirement already satisfied: joblib>=1.2.0 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from scikit-learn) (1.5.0)
+Requirement already satisfied: protobuf!=3.19.5,>=3.15.3 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from ray[tune]) (6.31.1)
+Requirement already satisfied: packaging in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from ray[tune]) (25.0)
+Requirement already satisfied: msgpack<2.0.0,>=1.0.0 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from ray[tune]) (1.0.4)
+Requirement already satisfied: pyyaml in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from ray[tune]) (6.0.2)
+Requirement already satisfied: click>=7.0 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from ray[tune]) (8.1.3)
+Requirement already satisfied: jsonschema in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from ray[tune]) (4.17.0)
+Requirement already satisfied: requests in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from ray[tune]) (2.28.1)
+Requirement already satisfied: tensorboardX>=1.9 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from ray[tune]) (2.6.4)
+Requirement already satisfied: pandas in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from ray[tune]) (2.3.0)
+Requirement already satisfied: pyarrow>=9.0.0 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from ray[tune]) (20.0.0)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from sympy>=1.13.3->torch) (1.3.0)
+Requirement already satisfied: MarkupSafe>=2.0 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from jinja2->torch) (2.1.1)
+Requirement already satisfied: attrs>=17.4.0 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from jsonschema->ray[tune]) (22.1.0)
+Requirement already satisfied: pyrsistent!=0.17.0,!=0.17.1,!=0.17.2,>=0.14.0 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from jsonschema->ray[tune]) (0.19.2)
+Requirement already satisfied: pytz>=2020.1 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from pandas->ray[tune]) (2022.6)
+Requirement already satisfied: python-dateutil>=2.8.2 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from pandas->ray[tune]) (2.9.0.post0)
+Requirement already satisfied: tzdata>=2022.7 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from pandas->ray[tune]) (2025.2)
+Requirement already satisfied: urllib3<1.27,>=1.21.1 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from requests->ray[tune]) (1.26.12)
+Requirement already satisfied: charset-normalizer<3,>=2 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from requests->ray[tune]) (2.1.1)
+Requirement already satisfied: certifi>=2017.4.17 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from requests->ray[tune]) (2022.9.24)
+Requirement already satisfied: idna<4,>=2.5 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from requests->ray[tune]) (3.4)
+Requirement already satisfied: six>=1.5 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from python-dateutil>=2.8.2->pandas->ray[tune]) (1.16.0)
+
+[notice] A new release of pip available: 22.3.1 -> 26.0.1
+[notice] To update, run: pip install --upgrade pip
+Obtaining file:///clonetroop/postdoc/borst/Code/spilsnet-torch
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: torch>=2.0.0 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from spilsnet-torch==0.1.0) (2.7.0)
+Requirement already satisfied: scikit-learn in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from spilsnet-torch==0.1.0) (1.6.1)
+Requirement already satisfied: numpy in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from spilsnet-torch==0.1.0) (2.2.5)
+Requirement already satisfied: safetensors in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from spilsnet-torch==0.1.0) (0.7.0)
+Requirement already satisfied: nvidia-cusolver-cu12==11.7.1.2 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (11.7.1.2)
+Requirement already satisfied: filelock in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (3.8.0)
+Requirement already satisfied: fsspec in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (2022.11.0)
+Requirement already satisfied: typing-extensions>=4.10.0 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (4.13.2)
+Requirement already satisfied: triton==3.3.0 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (3.3.0)
+Requirement already satisfied: nvidia-cudnn-cu12==9.5.1.17 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (9.5.1.17)
+Requirement already satisfied: nvidia-cufft-cu12==11.3.0.4 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (11.3.0.4)
+Requirement already satisfied: sympy>=1.13.3 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (1.14.0)
+Requirement already satisfied: nvidia-nccl-cu12==2.26.2 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (2.26.2)
+Requirement already satisfied: nvidia-cuda-runtime-cu12==12.6.77 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (12.6.77)
+Requirement already satisfied: networkx in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (3.4.2)
+Requirement already satisfied: nvidia-nvjitlink-cu12==12.6.85 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (12.6.85)
+Requirement already satisfied: nvidia-cusparselt-cu12==0.6.3 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (0.6.3)
+Requirement already satisfied: nvidia-curand-cu12==10.3.7.77 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (10.3.7.77)
+Requirement already satisfied: nvidia-cusparse-cu12==12.5.4.2 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (12.5.4.2)
+Requirement already satisfied: nvidia-cublas-cu12==12.6.4.1 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (12.6.4.1)
+Requirement already satisfied: nvidia-cuda-nvrtc-cu12==12.6.77 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (12.6.77)
+Requirement already satisfied: nvidia-cuda-cupti-cu12==12.6.80 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (12.6.80)
+Requirement already satisfied: nvidia-cufile-cu12==1.11.1.6 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (1.11.1.6)
+Requirement already satisfied: jinja2 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (3.1.2)
+Requirement already satisfied: nvidia-nvtx-cu12==12.6.77 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from torch>=2.0.0->spilsnet-torch==0.1.0) (12.6.77)
+Requirement already satisfied: setuptools>=40.8.0 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from triton==3.3.0->torch>=2.0.0->spilsnet-torch==0.1.0) (63.4.3)
+Requirement already satisfied: scipy>=1.6.0 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from scikit-learn->spilsnet-torch==0.1.0) (1.15.2)
+Requirement already satisfied: joblib>=1.2.0 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from scikit-learn->spilsnet-torch==0.1.0) (1.5.0)
+Requirement already satisfied: threadpoolctl>=3.1.0 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from scikit-learn->spilsnet-torch==0.1.0) (3.1.0)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in /clonetroop/postdoc/borst/.local/lib/python3.10/site-packages (from sympy>=1.13.3->torch>=2.0.0->spilsnet-torch==0.1.0) (1.3.0)
+Requirement already satisfied: MarkupSafe>=2.0 in /clonetroop/lacan/software/gnu12/Python/3.10.8-GCCcore-12.2.0/lib/python3.10/site-packages (from jinja2->torch>=2.0.0->spilsnet-torch==0.1.0) (2.1.1)
+Building wheels for collected packages: spilsnet-torch
+  Building editable for spilsnet-torch (pyproject.toml): started
+  Building editable for spilsnet-torch (pyproject.toml): finished with status 'done'
+  Created wheel for spilsnet-torch: filename=spilsnet_torch-0.1.0-0.editable-py3-none-any.whl size=28758 sha256=94e12a479684b0ba112dd8067dba57abcc6c8e909513b2faeecb58937d50d792
+  Stored in directory: /tmp/pip-ephem-wheel-cache-w6ga_g8d/wheels/13/c7/4d/b761a13448ab50f81c81172f606b32d35b724f579f2b591d5c
+Successfully built spilsnet-torch
+Installing collected packages: spilsnet-torch
+  Attempting uninstall: spilsnet-torch
+    Found existing installation: spilsnet-torch 0.1.0
+    Uninstalling spilsnet-torch-0.1.0:
+      Successfully uninstalled spilsnet-torch-0.1.0
+Successfully installed spilsnet-torch-0.1.0
+
+[notice] A new release of pip available: 22.3.1 -> 26.0.1
+[notice] To update, run: pip install --upgrade pip
+cd workspace && python3 create_predictor.py --train --version 01
+2026-03-09 17:13:11,623 - PredictorTool - WARNING - FEM packages not installed. Cannot run FEM simulations in this script.
+2026-03-09 17:13:13,272 - PredictorTool - INFO - Loading dataset: benchmark
+2026-03-09 17:13:14,035 - PredictorTool - INFO - Starting new SPILS-Net training for v01
+2026-03-09 17:13:14,083 - PredictorTool - INFO - Trainable parameters: 5,406
+2026-03-09 17:13:18,826 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:13:18,831 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:13:18,831 - spilsnet.wrapper - INFO - Epoch 1/5000 | Train Loss: 0.072438 | Val Loss: 0.024062 | Best Val Loss: 0.024062 | Best Epoch: 1
+2026-03-09 17:13:21,673 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:13:21,679 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:13:21,679 - spilsnet.wrapper - INFO - Epoch 2/5000 | Train Loss: 0.024436 | Val Loss: 0.017080 | Best Val Loss: 0.017080 | Best Epoch: 2
+2026-03-09 17:13:24,654 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:13:24,658 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:13:24,658 - spilsnet.wrapper - INFO - Epoch 3/5000 | Train Loss: 0.020828 | Val Loss: 0.015246 | Best Val Loss: 0.015246 | Best Epoch: 3
+2026-03-09 17:13:27,676 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:13:27,681 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:13:27,681 - spilsnet.wrapper - INFO - Epoch 4/5000 | Train Loss: 0.019745 | Val Loss: 0.014895 | Best Val Loss: 0.014895 | Best Epoch: 4
+2026-03-09 17:13:30,651 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:13:30,657 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:13:30,657 - spilsnet.wrapper - INFO - Epoch 5/5000 | Train Loss: 0.019243 | Val Loss: 0.014581 | Best Val Loss: 0.014581 | Best Epoch: 5
+2026-03-09 17:13:33,473 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:13:33,479 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:13:33,479 - spilsnet.wrapper - INFO - Epoch 6/5000 | Train Loss: 0.018886 | Val Loss: 0.014299 | Best Val Loss: 0.014299 | Best Epoch: 6
+2026-03-09 17:13:36,395 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:13:36,395 - spilsnet.wrapper - INFO - Epoch 7/5000 | Train Loss: 0.018516 | Val Loss: 0.014388 | Best Val Loss: 0.014299 | Best Epoch: 6
+2026-03-09 17:13:39,286 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:13:39,290 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:13:39,291 - spilsnet.wrapper - INFO - Epoch 8/5000 | Train Loss: 0.018408 | Val Loss: 0.013637 | Best Val Loss: 0.013637 | Best Epoch: 8
+2026-03-09 17:13:42,216 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:13:42,217 - spilsnet.wrapper - INFO - Epoch 9/5000 | Train Loss: 0.018071 | Val Loss: 0.013794 | Best Val Loss: 0.013637 | Best Epoch: 8
+2026-03-09 17:13:45,113 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:13:45,118 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:13:45,118 - spilsnet.wrapper - INFO - Epoch 10/5000 | Train Loss: 0.017930 | Val Loss: 0.013556 | Best Val Loss: 0.013556 | Best Epoch: 10
+2026-03-09 17:13:47,828 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:13:47,829 - spilsnet.wrapper - INFO - Epoch 11/5000 | Train Loss: 0.017771 | Val Loss: 0.013654 | Best Val Loss: 0.013556 | Best Epoch: 10
+2026-03-09 17:13:50,696 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:13:50,701 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:13:50,701 - spilsnet.wrapper - INFO - Epoch 12/5000 | Train Loss: 0.017594 | Val Loss: 0.013058 | Best Val Loss: 0.013058 | Best Epoch: 12
+2026-03-09 17:13:53,540 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:13:53,546 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:13:53,546 - spilsnet.wrapper - INFO - Epoch 13/5000 | Train Loss: 0.017485 | Val Loss: 0.013020 | Best Val Loss: 0.013020 | Best Epoch: 13
+2026-03-09 17:13:56,382 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:13:56,386 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:13:56,386 - spilsnet.wrapper - INFO - Epoch 14/5000 | Train Loss: 0.017472 | Val Loss: 0.012935 | Best Val Loss: 0.012935 | Best Epoch: 14
+2026-03-09 17:13:59,104 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:13:59,108 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:13:59,108 - spilsnet.wrapper - INFO - Epoch 15/5000 | Train Loss: 0.017375 | Val Loss: 0.012730 | Best Val Loss: 0.012730 | Best Epoch: 15
+2026-03-09 17:14:01,943 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:01,943 - spilsnet.wrapper - INFO - Epoch 16/5000 | Train Loss: 0.017307 | Val Loss: 0.012877 | Best Val Loss: 0.012730 | Best Epoch: 15
+2026-03-09 17:14:04,757 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:04,762 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:14:04,762 - spilsnet.wrapper - INFO - Epoch 17/5000 | Train Loss: 0.017196 | Val Loss: 0.012720 | Best Val Loss: 0.012720 | Best Epoch: 17
+2026-03-09 17:14:07,602 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:07,607 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:14:07,607 - spilsnet.wrapper - INFO - Epoch 18/5000 | Train Loss: 0.017162 | Val Loss: 0.012661 | Best Val Loss: 0.012661 | Best Epoch: 18
+2026-03-09 17:14:10,312 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:10,312 - spilsnet.wrapper - INFO - Epoch 19/5000 | Train Loss: 0.017098 | Val Loss: 0.012743 | Best Val Loss: 0.012661 | Best Epoch: 18
+2026-03-09 17:14:13,138 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:13,143 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:14:13,143 - spilsnet.wrapper - INFO - Epoch 20/5000 | Train Loss: 0.016997 | Val Loss: 0.012661 | Best Val Loss: 0.012661 | Best Epoch: 20
+2026-03-09 17:14:16,009 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:16,009 - spilsnet.wrapper - INFO - Epoch 21/5000 | Train Loss: 0.016873 | Val Loss: 0.012835 | Best Val Loss: 0.012661 | Best Epoch: 20
+2026-03-09 17:14:18,740 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:18,745 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:14:18,745 - spilsnet.wrapper - INFO - Epoch 22/5000 | Train Loss: 0.016837 | Val Loss: 0.012419 | Best Val Loss: 0.012419 | Best Epoch: 22
+2026-03-09 17:14:21,626 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:21,631 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:14:21,631 - spilsnet.wrapper - INFO - Epoch 23/5000 | Train Loss: 0.016667 | Val Loss: 0.012087 | Best Val Loss: 0.012087 | Best Epoch: 23
+2026-03-09 17:14:24,536 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:24,536 - spilsnet.wrapper - INFO - Epoch 24/5000 | Train Loss: 0.016605 | Val Loss: 0.012245 | Best Val Loss: 0.012087 | Best Epoch: 23
+2026-03-09 17:14:27,293 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:27,293 - spilsnet.wrapper - INFO - Epoch 25/5000 | Train Loss: 0.016505 | Val Loss: 0.012212 | Best Val Loss: 0.012087 | Best Epoch: 23
+2026-03-09 17:14:30,178 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:30,184 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:14:30,184 - spilsnet.wrapper - INFO - Epoch 26/5000 | Train Loss: 0.016565 | Val Loss: 0.011919 | Best Val Loss: 0.011919 | Best Epoch: 26
+2026-03-09 17:14:33,088 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:33,088 - spilsnet.wrapper - INFO - Epoch 27/5000 | Train Loss: 0.016419 | Val Loss: 0.012384 | Best Val Loss: 0.011919 | Best Epoch: 26
+2026-03-09 17:14:35,940 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:35,940 - spilsnet.wrapper - INFO - Epoch 28/5000 | Train Loss: 0.016379 | Val Loss: 0.012189 | Best Val Loss: 0.011919 | Best Epoch: 26
+2026-03-09 17:14:38,670 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:38,675 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:14:38,675 - spilsnet.wrapper - INFO - Epoch 29/5000 | Train Loss: 0.016425 | Val Loss: 0.011771 | Best Val Loss: 0.011771 | Best Epoch: 29
+2026-03-09 17:14:41,518 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:41,524 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:14:41,524 - spilsnet.wrapper - INFO - Epoch 30/5000 | Train Loss: 0.016344 | Val Loss: 0.011640 | Best Val Loss: 0.011640 | Best Epoch: 30
+2026-03-09 17:14:44,376 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:44,376 - spilsnet.wrapper - INFO - Epoch 31/5000 | Train Loss: 0.016179 | Val Loss: 0.011920 | Best Val Loss: 0.011640 | Best Epoch: 30
+2026-03-09 17:14:47,258 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:47,263 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:14:47,264 - spilsnet.wrapper - INFO - Epoch 32/5000 | Train Loss: 0.016158 | Val Loss: 0.011540 | Best Val Loss: 0.011540 | Best Epoch: 32
+2026-03-09 17:14:50,106 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:50,106 - spilsnet.wrapper - INFO - Epoch 33/5000 | Train Loss: 0.016176 | Val Loss: 0.011657 | Best Val Loss: 0.011540 | Best Epoch: 32
+2026-03-09 17:14:52,819 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:52,824 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:14:52,824 - spilsnet.wrapper - INFO - Epoch 34/5000 | Train Loss: 0.016127 | Val Loss: 0.011504 | Best Val Loss: 0.011504 | Best Epoch: 34
+2026-03-09 17:14:55,667 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:55,667 - spilsnet.wrapper - INFO - Epoch 35/5000 | Train Loss: 0.016183 | Val Loss: 0.011790 | Best Val Loss: 0.011504 | Best Epoch: 34
+2026-03-09 17:14:58,546 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:14:58,546 - spilsnet.wrapper - INFO - Epoch 36/5000 | Train Loss: 0.016094 | Val Loss: 0.011517 | Best Val Loss: 0.011504 | Best Epoch: 34
+2026-03-09 17:15:01,454 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:01,459 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:15:01,459 - spilsnet.wrapper - INFO - Epoch 37/5000 | Train Loss: 0.016015 | Val Loss: 0.011326 | Best Val Loss: 0.011326 | Best Epoch: 37
+2026-03-09 17:15:04,223 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:04,223 - spilsnet.wrapper - INFO - Epoch 38/5000 | Train Loss: 0.016038 | Val Loss: 0.011474 | Best Val Loss: 0.011326 | Best Epoch: 37
+2026-03-09 17:15:07,094 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:07,095 - spilsnet.wrapper - INFO - Epoch 39/5000 | Train Loss: 0.016026 | Val Loss: 0.011845 | Best Val Loss: 0.011326 | Best Epoch: 37
+2026-03-09 17:15:10,019 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:10,019 - spilsnet.wrapper - INFO - Epoch 40/5000 | Train Loss: 0.016011 | Val Loss: 0.011386 | Best Val Loss: 0.011326 | Best Epoch: 37
+2026-03-09 17:15:12,851 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:12,851 - spilsnet.wrapper - INFO - Epoch 41/5000 | Train Loss: 0.016065 | Val Loss: 0.011594 | Best Val Loss: 0.011326 | Best Epoch: 37
+2026-03-09 17:15:15,567 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:15,567 - spilsnet.wrapper - INFO - Epoch 42/5000 | Train Loss: 0.016061 | Val Loss: 0.011551 | Best Val Loss: 0.011326 | Best Epoch: 37
+2026-03-09 17:15:18,443 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:18,443 - spilsnet.wrapper - INFO - Epoch 43/5000 | Train Loss: 0.016010 | Val Loss: 0.011609 | Best Val Loss: 0.011326 | Best Epoch: 37
+2026-03-09 17:15:21,315 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:21,320 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:15:21,320 - spilsnet.wrapper - INFO - Epoch 44/5000 | Train Loss: 0.015986 | Val Loss: 0.011106 | Best Val Loss: 0.011106 | Best Epoch: 44
+2026-03-09 17:15:24,028 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:24,028 - spilsnet.wrapper - INFO - Epoch 45/5000 | Train Loss: 0.015963 | Val Loss: 0.011285 | Best Val Loss: 0.011106 | Best Epoch: 44
+2026-03-09 17:15:26,902 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:26,902 - spilsnet.wrapper - INFO - Epoch 46/5000 | Train Loss: 0.015959 | Val Loss: 0.011521 | Best Val Loss: 0.011106 | Best Epoch: 44
+2026-03-09 17:15:29,771 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:29,771 - spilsnet.wrapper - INFO - Epoch 47/5000 | Train Loss: 0.015895 | Val Loss: 0.011514 | Best Val Loss: 0.011106 | Best Epoch: 44
+2026-03-09 17:15:32,502 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:32,502 - spilsnet.wrapper - INFO - Epoch 48/5000 | Train Loss: 0.015988 | Val Loss: 0.011243 | Best Val Loss: 0.011106 | Best Epoch: 44
+2026-03-09 17:15:35,334 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:35,335 - spilsnet.wrapper - INFO - Epoch 49/5000 | Train Loss: 0.015962 | Val Loss: 0.011437 | Best Val Loss: 0.011106 | Best Epoch: 44
+2026-03-09 17:15:38,212 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:38,212 - spilsnet.wrapper - INFO - Epoch 50/5000 | Train Loss: 0.015880 | Val Loss: 0.011290 | Best Val Loss: 0.011106 | Best Epoch: 44
+2026-03-09 17:15:41,056 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:41,057 - spilsnet.wrapper - INFO - Epoch 51/5000 | Train Loss: 0.015872 | Val Loss: 0.011451 | Best Val Loss: 0.011106 | Best Epoch: 44
+2026-03-09 17:15:43,748 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:43,749 - spilsnet.wrapper - INFO - Epoch 52/5000 | Train Loss: 0.016018 | Val Loss: 0.011215 | Best Val Loss: 0.011106 | Best Epoch: 44
+2026-03-09 17:15:46,618 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:46,618 - spilsnet.wrapper - INFO - Epoch 53/5000 | Train Loss: 0.015890 | Val Loss: 0.011215 | Best Val Loss: 0.011106 | Best Epoch: 44
+2026-03-09 17:15:49,448 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:49,454 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:15:49,454 - spilsnet.wrapper - INFO - Epoch 54/5000 | Train Loss: 0.015932 | Val Loss: 0.010926 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:15:52,274 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:52,275 - spilsnet.wrapper - INFO - Epoch 55/5000 | Train Loss: 0.015937 | Val Loss: 0.011284 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:15:55,088 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:55,088 - spilsnet.wrapper - INFO - Epoch 56/5000 | Train Loss: 0.015879 | Val Loss: 0.011347 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:15:57,794 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:15:57,794 - spilsnet.wrapper - INFO - Epoch 57/5000 | Train Loss: 0.015976 | Val Loss: 0.010939 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:00,610 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:00,610 - spilsnet.wrapper - INFO - Epoch 58/5000 | Train Loss: 0.015852 | Val Loss: 0.011111 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:03,412 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:03,412 - spilsnet.wrapper - INFO - Epoch 59/5000 | Train Loss: 0.015774 | Val Loss: 0.011112 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:06,260 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:06,260 - spilsnet.wrapper - INFO - Epoch 60/5000 | Train Loss: 0.015769 | Val Loss: 0.011168 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:08,933 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:08,933 - spilsnet.wrapper - INFO - Epoch 61/5000 | Train Loss: 0.015806 | Val Loss: 0.011037 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:11,776 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:11,776 - spilsnet.wrapper - INFO - Epoch 62/5000 | Train Loss: 0.015754 | Val Loss: 0.011356 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:14,584 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:14,584 - spilsnet.wrapper - INFO - Epoch 63/5000 | Train Loss: 0.015854 | Val Loss: 0.011232 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:17,395 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:17,395 - spilsnet.wrapper - INFO - Epoch 64/5000 | Train Loss: 0.015803 | Val Loss: 0.011413 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:20,112 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:20,112 - spilsnet.wrapper - INFO - Epoch 65/5000 | Train Loss: 0.015818 | Val Loss: 0.011335 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:22,944 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:22,945 - spilsnet.wrapper - INFO - Epoch 66/5000 | Train Loss: 0.015768 | Val Loss: 0.011368 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:25,779 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:25,779 - spilsnet.wrapper - INFO - Epoch 67/5000 | Train Loss: 0.015799 | Val Loss: 0.011193 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:28,481 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:28,481 - spilsnet.wrapper - INFO - Epoch 68/5000 | Train Loss: 0.015685 | Val Loss: 0.011383 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:31,299 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:31,299 - spilsnet.wrapper - INFO - Epoch 69/5000 | Train Loss: 0.015715 | Val Loss: 0.011292 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:34,164 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:34,164 - spilsnet.wrapper - INFO - Epoch 70/5000 | Train Loss: 0.015642 | Val Loss: 0.011465 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:36,854 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:36,854 - spilsnet.wrapper - INFO - Epoch 71/5000 | Train Loss: 0.015651 | Val Loss: 0.011006 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:39,685 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:39,686 - spilsnet.wrapper - INFO - Epoch 72/5000 | Train Loss: 0.015676 | Val Loss: 0.011059 | Best Val Loss: 0.010926 | Best Epoch: 54
+2026-03-09 17:16:42,548 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:42,552 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:16:42,552 - spilsnet.wrapper - INFO - Epoch 73/5000 | Train Loss: 0.015649 | Val Loss: 0.010845 | Best Val Loss: 0.010845 | Best Epoch: 73
+2026-03-09 17:16:45,457 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:45,457 - spilsnet.wrapper - INFO - Epoch 74/5000 | Train Loss: 0.015668 | Val Loss: 0.011249 | Best Val Loss: 0.010845 | Best Epoch: 73
+2026-03-09 17:16:48,217 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:48,217 - spilsnet.wrapper - INFO - Epoch 75/5000 | Train Loss: 0.015587 | Val Loss: 0.011254 | Best Val Loss: 0.010845 | Best Epoch: 73
+2026-03-09 17:16:51,151 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:51,151 - spilsnet.wrapper - INFO - Epoch 76/5000 | Train Loss: 0.015581 | Val Loss: 0.010974 | Best Val Loss: 0.010845 | Best Epoch: 73
+2026-03-09 17:16:54,090 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:54,095 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:16:54,095 - spilsnet.wrapper - INFO - Epoch 77/5000 | Train Loss: 0.015613 | Val Loss: 0.010776 | Best Val Loss: 0.010776 | Best Epoch: 77
+2026-03-09 17:16:57,021 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:57,021 - spilsnet.wrapper - INFO - Epoch 78/5000 | Train Loss: 0.015590 | Val Loss: 0.011209 | Best Val Loss: 0.010776 | Best Epoch: 77
+2026-03-09 17:16:59,961 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:16:59,962 - spilsnet.wrapper - INFO - Epoch 79/5000 | Train Loss: 0.015664 | Val Loss: 0.010872 | Best Val Loss: 0.010776 | Best Epoch: 77
+2026-03-09 17:17:02,751 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:02,751 - spilsnet.wrapper - INFO - Epoch 80/5000 | Train Loss: 0.015672 | Val Loss: 0.011115 | Best Val Loss: 0.010776 | Best Epoch: 77
+2026-03-09 17:17:05,662 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:05,662 - spilsnet.wrapper - INFO - Epoch 81/5000 | Train Loss: 0.015542 | Val Loss: 0.011116 | Best Val Loss: 0.010776 | Best Epoch: 77
+2026-03-09 17:17:08,534 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:08,534 - spilsnet.wrapper - INFO - Epoch 82/5000 | Train Loss: 0.015650 | Val Loss: 0.011573 | Best Val Loss: 0.010776 | Best Epoch: 77
+2026-03-09 17:17:11,404 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:11,404 - spilsnet.wrapper - INFO - Epoch 83/5000 | Train Loss: 0.015521 | Val Loss: 0.011289 | Best Val Loss: 0.010776 | Best Epoch: 77
+2026-03-09 17:17:14,139 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:14,139 - spilsnet.wrapper - INFO - Epoch 84/5000 | Train Loss: 0.015538 | Val Loss: 0.010910 | Best Val Loss: 0.010776 | Best Epoch: 77
+2026-03-09 17:17:17,013 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:17,013 - spilsnet.wrapper - INFO - Epoch 85/5000 | Train Loss: 0.015679 | Val Loss: 0.010944 | Best Val Loss: 0.010776 | Best Epoch: 77
+2026-03-09 17:17:19,896 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:19,896 - spilsnet.wrapper - INFO - Epoch 86/5000 | Train Loss: 0.015606 | Val Loss: 0.011106 | Best Val Loss: 0.010776 | Best Epoch: 77
+2026-03-09 17:17:22,739 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:22,744 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:17:22,745 - spilsnet.wrapper - INFO - Epoch 87/5000 | Train Loss: 0.015472 | Val Loss: 0.010683 | Best Val Loss: 0.010683 | Best Epoch: 87
+2026-03-09 17:17:25,422 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:25,427 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:17:25,428 - spilsnet.wrapper - INFO - Epoch 88/5000 | Train Loss: 0.015493 | Val Loss: 0.010653 | Best Val Loss: 0.010653 | Best Epoch: 88
+2026-03-09 17:17:28,262 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:28,263 - spilsnet.wrapper - INFO - Epoch 89/5000 | Train Loss: 0.015481 | Val Loss: 0.010951 | Best Val Loss: 0.010653 | Best Epoch: 88
+2026-03-09 17:17:30,985 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:30,985 - spilsnet.wrapper - INFO - Epoch 90/5000 | Train Loss: 0.015477 | Val Loss: 0.011067 | Best Val Loss: 0.010653 | Best Epoch: 88
+2026-03-09 17:17:33,818 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:33,818 - spilsnet.wrapper - INFO - Epoch 91/5000 | Train Loss: 0.015499 | Val Loss: 0.010803 | Best Val Loss: 0.010653 | Best Epoch: 88
+2026-03-09 17:17:36,642 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:36,643 - spilsnet.wrapper - INFO - Epoch 92/5000 | Train Loss: 0.015492 | Val Loss: 0.011066 | Best Val Loss: 0.010653 | Best Epoch: 88
+2026-03-09 17:17:39,509 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:39,509 - spilsnet.wrapper - INFO - Epoch 93/5000 | Train Loss: 0.015512 | Val Loss: 0.010779 | Best Val Loss: 0.010653 | Best Epoch: 88
+2026-03-09 17:17:42,206 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:42,206 - spilsnet.wrapper - INFO - Epoch 94/5000 | Train Loss: 0.015547 | Val Loss: 0.010961 | Best Val Loss: 0.010653 | Best Epoch: 88
+2026-03-09 17:17:45,054 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:45,054 - spilsnet.wrapper - INFO - Epoch 95/5000 | Train Loss: 0.015474 | Val Loss: 0.010922 | Best Val Loss: 0.010653 | Best Epoch: 88
+2026-03-09 17:17:47,936 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:47,936 - spilsnet.wrapper - INFO - Epoch 96/5000 | Train Loss: 0.015396 | Val Loss: 0.010916 | Best Val Loss: 0.010653 | Best Epoch: 88
+2026-03-09 17:17:50,823 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:50,827 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:17:50,827 - spilsnet.wrapper - INFO - Epoch 97/5000 | Train Loss: 0.015365 | Val Loss: 0.010423 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:17:53,527 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:53,527 - spilsnet.wrapper - INFO - Epoch 98/5000 | Train Loss: 0.015464 | Val Loss: 0.010953 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:17:56,360 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:56,360 - spilsnet.wrapper - INFO - Epoch 99/5000 | Train Loss: 0.015429 | Val Loss: 0.011124 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:17:59,164 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:17:59,164 - spilsnet.wrapper - INFO - Epoch 100/5000 | Train Loss: 0.015385 | Val Loss: 0.011106 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:18:01,980 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:01,980 - spilsnet.wrapper - INFO - Epoch 101/5000 | Train Loss: 0.015348 | Val Loss: 0.010896 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:18:04,832 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:04,832 - spilsnet.wrapper - INFO - Epoch 102/5000 | Train Loss: 0.015417 | Val Loss: 0.010590 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:18:07,509 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:07,509 - spilsnet.wrapper - INFO - Epoch 103/5000 | Train Loss: 0.015413 | Val Loss: 0.011251 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:18:10,324 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:10,324 - spilsnet.wrapper - INFO - Epoch 104/5000 | Train Loss: 0.015329 | Val Loss: 0.010957 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:18:13,136 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:13,137 - spilsnet.wrapper - INFO - Epoch 105/5000 | Train Loss: 0.015521 | Val Loss: 0.010861 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:18:16,007 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:16,008 - spilsnet.wrapper - INFO - Epoch 106/5000 | Train Loss: 0.015267 | Val Loss: 0.010897 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:18:18,714 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:18,714 - spilsnet.wrapper - INFO - Epoch 107/5000 | Train Loss: 0.015263 | Val Loss: 0.010761 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:18:21,552 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:21,552 - spilsnet.wrapper - INFO - Epoch 108/5000 | Train Loss: 0.015420 | Val Loss: 0.010653 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:18:24,360 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:24,360 - spilsnet.wrapper - INFO - Epoch 109/5000 | Train Loss: 0.015336 | Val Loss: 0.010552 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:18:27,200 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:27,201 - spilsnet.wrapper - INFO - Epoch 110/5000 | Train Loss: 0.015318 | Val Loss: 0.010686 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:18:29,923 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:29,923 - spilsnet.wrapper - INFO - Epoch 111/5000 | Train Loss: 0.015329 | Val Loss: 0.010608 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:18:32,761 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:32,761 - spilsnet.wrapper - INFO - Epoch 112/5000 | Train Loss: 0.015265 | Val Loss: 0.010488 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:18:35,592 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:35,592 - spilsnet.wrapper - INFO - Epoch 113/5000 | Train Loss: 0.015324 | Val Loss: 0.010497 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:18:38,343 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:38,344 - spilsnet.wrapper - INFO - Epoch 114/5000 | Train Loss: 0.015224 | Val Loss: 0.010960 | Best Val Loss: 0.010423 | Best Epoch: 97
+2026-03-09 17:18:41,204 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:41,208 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:18:41,209 - spilsnet.wrapper - INFO - Epoch 115/5000 | Train Loss: 0.015251 | Val Loss: 0.010327 | Best Val Loss: 0.010327 | Best Epoch: 115
+2026-03-09 17:18:44,054 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:44,054 - spilsnet.wrapper - INFO - Epoch 116/5000 | Train Loss: 0.015161 | Val Loss: 0.010810 | Best Val Loss: 0.010327 | Best Epoch: 115
+2026-03-09 17:18:46,803 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:46,803 - spilsnet.wrapper - INFO - Epoch 117/5000 | Train Loss: 0.015229 | Val Loss: 0.010796 | Best Val Loss: 0.010327 | Best Epoch: 115
+2026-03-09 17:18:49,724 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:49,724 - spilsnet.wrapper - INFO - Epoch 118/5000 | Train Loss: 0.015196 | Val Loss: 0.010604 | Best Val Loss: 0.010327 | Best Epoch: 115
+2026-03-09 17:18:52,641 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:52,642 - spilsnet.wrapper - INFO - Epoch 119/5000 | Train Loss: 0.015114 | Val Loss: 0.010598 | Best Val Loss: 0.010327 | Best Epoch: 115
+2026-03-09 17:18:55,591 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:55,591 - spilsnet.wrapper - INFO - Epoch 120/5000 | Train Loss: 0.015158 | Val Loss: 0.010721 | Best Val Loss: 0.010327 | Best Epoch: 115
+2026-03-09 17:18:58,388 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:18:58,388 - spilsnet.wrapper - INFO - Epoch 121/5000 | Train Loss: 0.015165 | Val Loss: 0.010912 | Best Val Loss: 0.010327 | Best Epoch: 115
+2026-03-09 17:19:01,320 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:01,321 - spilsnet.wrapper - INFO - Epoch 122/5000 | Train Loss: 0.015130 | Val Loss: 0.010605 | Best Val Loss: 0.010327 | Best Epoch: 115
+2026-03-09 17:19:04,199 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:04,199 - spilsnet.wrapper - INFO - Epoch 123/5000 | Train Loss: 0.015044 | Val Loss: 0.010612 | Best Val Loss: 0.010327 | Best Epoch: 115
+2026-03-09 17:19:07,045 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:07,045 - spilsnet.wrapper - INFO - Epoch 124/5000 | Train Loss: 0.015160 | Val Loss: 0.010487 | Best Val Loss: 0.010327 | Best Epoch: 115
+2026-03-09 17:19:09,913 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:09,913 - spilsnet.wrapper - INFO - Epoch 125/5000 | Train Loss: 0.015233 | Val Loss: 0.011032 | Best Val Loss: 0.010327 | Best Epoch: 115
+2026-03-09 17:19:12,645 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:12,645 - spilsnet.wrapper - INFO - Epoch 126/5000 | Train Loss: 0.015155 | Val Loss: 0.010535 | Best Val Loss: 0.010327 | Best Epoch: 115
+2026-03-09 17:19:15,479 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:15,479 - spilsnet.wrapper - INFO - Epoch 127/5000 | Train Loss: 0.015094 | Val Loss: 0.010795 | Best Val Loss: 0.010327 | Best Epoch: 115
+2026-03-09 17:19:18,344 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:18,349 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:19:18,349 - spilsnet.wrapper - INFO - Epoch 128/5000 | Train Loss: 0.015178 | Val Loss: 0.010275 | Best Val Loss: 0.010275 | Best Epoch: 128
+2026-03-09 17:19:21,105 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:21,105 - spilsnet.wrapper - INFO - Epoch 129/5000 | Train Loss: 0.015092 | Val Loss: 0.010297 | Best Val Loss: 0.010275 | Best Epoch: 128
+2026-03-09 17:19:23,867 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:23,867 - spilsnet.wrapper - INFO - Epoch 130/5000 | Train Loss: 0.015098 | Val Loss: 0.010499 | Best Val Loss: 0.010275 | Best Epoch: 128
+2026-03-09 17:19:26,673 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:26,673 - spilsnet.wrapper - INFO - Epoch 131/5000 | Train Loss: 0.015151 | Val Loss: 0.010765 | Best Val Loss: 0.010275 | Best Epoch: 128
+2026-03-09 17:19:29,506 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:29,506 - spilsnet.wrapper - INFO - Epoch 132/5000 | Train Loss: 0.015096 | Val Loss: 0.010717 | Best Val Loss: 0.010275 | Best Epoch: 128
+2026-03-09 17:19:32,342 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:32,342 - spilsnet.wrapper - INFO - Epoch 133/5000 | Train Loss: 0.015024 | Val Loss: 0.010420 | Best Val Loss: 0.010275 | Best Epoch: 128
+2026-03-09 17:19:34,998 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:34,998 - spilsnet.wrapper - INFO - Epoch 134/5000 | Train Loss: 0.015044 | Val Loss: 0.010633 | Best Val Loss: 0.010275 | Best Epoch: 128
+2026-03-09 17:19:37,854 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:37,854 - spilsnet.wrapper - INFO - Epoch 135/5000 | Train Loss: 0.015171 | Val Loss: 0.010569 | Best Val Loss: 0.010275 | Best Epoch: 128
+2026-03-09 17:19:40,651 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:40,652 - spilsnet.wrapper - INFO - Epoch 136/5000 | Train Loss: 0.015078 | Val Loss: 0.010430 | Best Val Loss: 0.010275 | Best Epoch: 128
+2026-03-09 17:19:43,364 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:43,369 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:19:43,369 - spilsnet.wrapper - INFO - Epoch 137/5000 | Train Loss: 0.015086 | Val Loss: 0.010220 | Best Val Loss: 0.010220 | Best Epoch: 137
+2026-03-09 17:19:46,246 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:46,246 - spilsnet.wrapper - INFO - Epoch 138/5000 | Train Loss: 0.015076 | Val Loss: 0.010476 | Best Val Loss: 0.010220 | Best Epoch: 137
+2026-03-09 17:19:49,105 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:49,105 - spilsnet.wrapper - INFO - Epoch 139/5000 | Train Loss: 0.015066 | Val Loss: 0.010503 | Best Val Loss: 0.010220 | Best Epoch: 137
+2026-03-09 17:19:51,835 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:51,835 - spilsnet.wrapper - INFO - Epoch 140/5000 | Train Loss: 0.015133 | Val Loss: 0.010634 | Best Val Loss: 0.010220 | Best Epoch: 137
+2026-03-09 17:19:54,704 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:54,704 - spilsnet.wrapper - INFO - Epoch 141/5000 | Train Loss: 0.015091 | Val Loss: 0.010423 | Best Val Loss: 0.010220 | Best Epoch: 137
+2026-03-09 17:19:57,587 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:19:57,593 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:19:57,593 - spilsnet.wrapper - INFO - Epoch 142/5000 | Train Loss: 0.015060 | Val Loss: 0.010133 | Best Val Loss: 0.010133 | Best Epoch: 142
+2026-03-09 17:20:00,417 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:00,417 - spilsnet.wrapper - INFO - Epoch 143/5000 | Train Loss: 0.014991 | Val Loss: 0.010972 | Best Val Loss: 0.010133 | Best Epoch: 142
+2026-03-09 17:20:03,153 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:03,153 - spilsnet.wrapper - INFO - Epoch 144/5000 | Train Loss: 0.014982 | Val Loss: 0.010531 | Best Val Loss: 0.010133 | Best Epoch: 142
+2026-03-09 17:20:05,985 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:05,985 - spilsnet.wrapper - INFO - Epoch 145/5000 | Train Loss: 0.015198 | Val Loss: 0.010734 | Best Val Loss: 0.010133 | Best Epoch: 142
+2026-03-09 17:20:08,849 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:08,849 - spilsnet.wrapper - INFO - Epoch 146/5000 | Train Loss: 0.015016 | Val Loss: 0.010474 | Best Val Loss: 0.010133 | Best Epoch: 142
+2026-03-09 17:20:11,694 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:11,694 - spilsnet.wrapper - INFO - Epoch 147/5000 | Train Loss: 0.014986 | Val Loss: 0.010802 | Best Val Loss: 0.010133 | Best Epoch: 142
+2026-03-09 17:20:14,552 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:14,552 - spilsnet.wrapper - INFO - Epoch 148/5000 | Train Loss: 0.015060 | Val Loss: 0.010608 | Best Val Loss: 0.010133 | Best Epoch: 142
+2026-03-09 17:20:17,307 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:17,307 - spilsnet.wrapper - INFO - Epoch 149/5000 | Train Loss: 0.015074 | Val Loss: 0.010576 | Best Val Loss: 0.010133 | Best Epoch: 142
+2026-03-09 17:20:20,177 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:20,177 - spilsnet.wrapper - INFO - Epoch 150/5000 | Train Loss: 0.015160 | Val Loss: 0.010597 | Best Val Loss: 0.010133 | Best Epoch: 142
+2026-03-09 17:20:23,016 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:23,022 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01_best.safetensors (Safetensors format)
+2026-03-09 17:20:23,022 - spilsnet.wrapper - INFO - Epoch 151/5000 | Train Loss: 0.014926 | Val Loss: 0.010026 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:20:25,885 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:25,885 - spilsnet.wrapper - INFO - Epoch 152/5000 | Train Loss: 0.014902 | Val Loss: 0.010323 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:20:28,636 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:28,637 - spilsnet.wrapper - INFO - Epoch 153/5000 | Train Loss: 0.015015 | Val Loss: 0.010848 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:20:31,530 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:31,530 - spilsnet.wrapper - INFO - Epoch 154/5000 | Train Loss: 0.014975 | Val Loss: 0.010207 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:20:34,405 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:34,405 - spilsnet.wrapper - INFO - Epoch 155/5000 | Train Loss: 0.014936 | Val Loss: 0.010335 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:20:37,327 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:37,327 - spilsnet.wrapper - INFO - Epoch 156/5000 | Train Loss: 0.014985 | Val Loss: 0.010280 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:20:40,048 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:40,048 - spilsnet.wrapper - INFO - Epoch 157/5000 | Train Loss: 0.015014 | Val Loss: 0.010608 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:20:42,884 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:42,884 - spilsnet.wrapper - INFO - Epoch 158/5000 | Train Loss: 0.015024 | Val Loss: 0.010513 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:20:45,769 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:45,770 - spilsnet.wrapper - INFO - Epoch 159/5000 | Train Loss: 0.015006 | Val Loss: 0.010233 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:20:48,545 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:48,545 - spilsnet.wrapper - INFO - Epoch 160/5000 | Train Loss: 0.014962 | Val Loss: 0.010393 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:20:51,401 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:51,401 - spilsnet.wrapper - INFO - Epoch 161/5000 | Train Loss: 0.015047 | Val Loss: 0.010312 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:20:54,277 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:54,278 - spilsnet.wrapper - INFO - Epoch 162/5000 | Train Loss: 0.015028 | Val Loss: 0.010476 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:20:57,012 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:57,012 - spilsnet.wrapper - INFO - Epoch 163/5000 | Train Loss: 0.015027 | Val Loss: 0.010552 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:20:59,813 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:20:59,813 - spilsnet.wrapper - INFO - Epoch 164/5000 | Train Loss: 0.014947 | Val Loss: 0.010641 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:02,628 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:02,628 - spilsnet.wrapper - INFO - Epoch 165/5000 | Train Loss: 0.014964 | Val Loss: 0.010134 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:05,450 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:05,450 - spilsnet.wrapper - INFO - Epoch 166/5000 | Train Loss: 0.014988 | Val Loss: 0.010720 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:08,153 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:08,153 - spilsnet.wrapper - INFO - Epoch 167/5000 | Train Loss: 0.014989 | Val Loss: 0.010607 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:10,968 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:10,969 - spilsnet.wrapper - INFO - Epoch 168/5000 | Train Loss: 0.015058 | Val Loss: 0.010145 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:13,796 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:13,796 - spilsnet.wrapper - INFO - Epoch 169/5000 | Train Loss: 0.014974 | Val Loss: 0.010691 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:16,616 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:16,616 - spilsnet.wrapper - INFO - Epoch 170/5000 | Train Loss: 0.014922 | Val Loss: 0.010443 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:19,421 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:19,421 - spilsnet.wrapper - INFO - Epoch 171/5000 | Train Loss: 0.014954 | Val Loss: 0.010396 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:22,133 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:22,134 - spilsnet.wrapper - INFO - Epoch 172/5000 | Train Loss: 0.015000 | Val Loss: 0.010785 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:24,967 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:24,967 - spilsnet.wrapper - INFO - Epoch 173/5000 | Train Loss: 0.014867 | Val Loss: 0.010068 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:27,775 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:27,775 - spilsnet.wrapper - INFO - Epoch 174/5000 | Train Loss: 0.014805 | Val Loss: 0.010393 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:30,626 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:30,626 - spilsnet.wrapper - INFO - Epoch 175/5000 | Train Loss: 0.014818 | Val Loss: 0.010285 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:33,371 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:33,371 - spilsnet.wrapper - INFO - Epoch 176/5000 | Train Loss: 0.014723 | Val Loss: 0.010065 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:36,184 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:36,184 - spilsnet.wrapper - INFO - Epoch 177/5000 | Train Loss: 0.014801 | Val Loss: 0.010252 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:39,008 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:39,008 - spilsnet.wrapper - INFO - Epoch 178/5000 | Train Loss: 0.014752 | Val Loss: 0.010066 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:41,797 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:41,797 - spilsnet.wrapper - INFO - Epoch 179/5000 | Train Loss: 0.014767 | Val Loss: 0.010244 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:44,535 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:44,536 - spilsnet.wrapper - INFO - Epoch 180/5000 | Train Loss: 0.014775 | Val Loss: 0.010376 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:47,347 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:47,347 - spilsnet.wrapper - INFO - Epoch 181/5000 | Train Loss: 0.014764 | Val Loss: 0.010120 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:50,188 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:50,188 - spilsnet.wrapper - INFO - Epoch 182/5000 | Train Loss: 0.014747 | Val Loss: 0.010095 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:52,916 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:52,916 - spilsnet.wrapper - INFO - Epoch 183/5000 | Train Loss: 0.014821 | Val Loss: 0.010300 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:55,747 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:55,747 - spilsnet.wrapper - INFO - Epoch 184/5000 | Train Loss: 0.014733 | Val Loss: 0.010401 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:21:58,586 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:21:58,586 - spilsnet.wrapper - INFO - Epoch 185/5000 | Train Loss: 0.014768 | Val Loss: 0.010191 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:01,292 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:01,292 - spilsnet.wrapper - INFO - Epoch 186/5000 | Train Loss: 0.014721 | Val Loss: 0.010147 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:04,148 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:04,148 - spilsnet.wrapper - INFO - Epoch 187/5000 | Train Loss: 0.014756 | Val Loss: 0.010224 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:07,004 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:07,004 - spilsnet.wrapper - INFO - Epoch 188/5000 | Train Loss: 0.014798 | Val Loss: 0.010295 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:09,849 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:09,849 - spilsnet.wrapper - INFO - Epoch 189/5000 | Train Loss: 0.014772 | Val Loss: 0.010260 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:12,566 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:12,566 - spilsnet.wrapper - INFO - Epoch 190/5000 | Train Loss: 0.014716 | Val Loss: 0.010057 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:15,408 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:15,408 - spilsnet.wrapper - INFO - Epoch 191/5000 | Train Loss: 0.014749 | Val Loss: 0.010071 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:18,275 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:18,275 - spilsnet.wrapper - INFO - Epoch 192/5000 | Train Loss: 0.014780 | Val Loss: 0.010282 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:21,124 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:21,124 - spilsnet.wrapper - INFO - Epoch 193/5000 | Train Loss: 0.014763 | Val Loss: 0.010275 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:24,019 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:24,019 - spilsnet.wrapper - INFO - Epoch 194/5000 | Train Loss: 0.014664 | Val Loss: 0.010077 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:26,762 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:26,763 - spilsnet.wrapper - INFO - Epoch 195/5000 | Train Loss: 0.014656 | Val Loss: 0.010168 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:29,649 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:29,650 - spilsnet.wrapper - INFO - Epoch 196/5000 | Train Loss: 0.014640 | Val Loss: 0.010153 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:32,552 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:32,552 - spilsnet.wrapper - INFO - Epoch 197/5000 | Train Loss: 0.014622 | Val Loss: 0.010118 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:35,424 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:35,424 - spilsnet.wrapper - INFO - Epoch 198/5000 | Train Loss: 0.014616 | Val Loss: 0.010240 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:38,168 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:38,169 - spilsnet.wrapper - INFO - Epoch 199/5000 | Train Loss: 0.014584 | Val Loss: 0.010100 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:41,011 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:41,012 - spilsnet.wrapper - INFO - Epoch 200/5000 | Train Loss: 0.014639 | Val Loss: 0.010057 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:43,841 - spilsnet.wrapper - INFO - Model saved to surrogate_models/model_data_benchmark_spils_net_v01.safetensors (Safetensors format)
+2026-03-09 17:22:43,841 - spilsnet.wrapper - INFO - Early stopping triggered at epoch 201
+2026-03-09 17:22:43,841 - spilsnet.wrapper - INFO - Epoch 201/5000 | Train Loss: 0.014620 | Val Loss: 0.010101 | Best Val Loss: 0.010026 | Best Epoch: 151
+2026-03-09 17:22:43,841 - spilsnet.wrapper - INFO - Training finished!
+2026-03-09 17:22:44,225 - spilsnet.wrapper - INFO - Test Set Metrics (Best Epoch: 151):
+  MSE (Scaled): 0.00863437
+  L1 Force (Raw): 20.89692958 (Rel: 5.99%)
+  L1 Internal State Delta (Raw): 0.00005089
+2026-03-09 17:22:44,225 - PredictorTool - INFO - Training complete in 570.14s
+End: Mon Mar 9 17:22:45 CET 2026
