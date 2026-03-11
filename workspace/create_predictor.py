@@ -283,10 +283,10 @@ def evaluate_model(predictor: Any, config: SimulationConfig):
     tct_predict.format_results()
     tct_error.format_results()
 
-    np.save(RESULTS_FOLDER / f"sim_results_error_{suffix}", final_error)
-    np.save(RESULTS_FOLDER / f"sim_results_in_{suffix}", tct_predict.data_in)
-    np.save(RESULTS_FOLDER / f"sim_results_out_{suffix}", tct_predict.data_out)
-    np.save(RESULTS_FOLDER / f"sim_results_internal_{suffix}", tct_predict.data_internal)
+    np.save(RESULTS_FOLDER / f"sm_results_error_{suffix}", final_error)
+    np.save(RESULTS_FOLDER / f"sm_results_in_{suffix}", tct_predict.data_in)
+    np.save(RESULTS_FOLDER / f"sm_results_out_{suffix}", tct_predict.data_out)
+    np.save(RESULTS_FOLDER / f"sm_results_internal_{suffix}", tct_predict.data_internal)
 
 
 def apply_lstm(config: SimulationConfig):
@@ -318,6 +318,32 @@ def apply_spils_net(config: SimulationConfig):
     evaluate_model(predictor, config)
 
 
+def generate_simulation_data(config: SimulationConfig):
+    logger.info("Generating simulation data...")
+
+    tct = Extractor(
+        frequency=config.frequency,
+        constitutive_model=config.constitutive_law,
+        configuration=config.data_version
+    )
+    tct.run()
+
+    with open(f"training_data/plastic_top_{config.data_version}_for_pca.npz", "rb") as f:
+        data = np.load(f)
+        plastic_top = data[list(data.keys())[0]]
+
+    pca = PCA(n_components=1)
+    pca.fit(plastic_top)
+
+    tct_data_internal = pca.transform(tct.data_plastic_top)
+
+    suffix = f"{config.data_version}_freq{config.frequency}.npy"
+
+    np.save(RESULTS_FOLDER / f"tct_results_in_{suffix}", tct.data_in)
+    np.save(RESULTS_FOLDER / f"tct_results_out_{suffix}", tct.data_out)
+    np.save(RESULTS_FOLDER / f"tct_results_internal_{suffix}", tct_data_internal)
+
+
 def main():
     parser = argparse.ArgumentParser(description="SPILS-Net Predictor Tool")
     parser.add_argument("--method", type=str, choices=["lstm", "spils_net"], default="spils_net", help="Prediction method")
@@ -330,6 +356,7 @@ def main():
     parser.add_argument("--apply", action="store_true", help="Run application/evaluation")
     parser.add_argument("--generate", action="store_true", help="Generate training set if missing")
     parser.add_argument("--resume", action="store_true", help="Resume training from checkpoint")
+    parser.add_argument("--simulate", action="store_true", help="Generate simulation data")
 
     args = parser.parse_args()
 
@@ -357,8 +384,11 @@ def main():
         else:
             apply_spils_net(config)
 
+    if args.simulate:
+        generate_simulation_data(config)
+
     # Default behavior if no action specified
-    if not (args.train or args.apply or args.generate):
+    if not (args.train or args.apply or args.generate or args.simulate):
         parser.print_help()
 
 

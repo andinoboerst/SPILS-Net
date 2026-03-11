@@ -154,7 +154,7 @@ The repository includes a `Makefile` to simplify common tasks. All commands can 
 | `make train-lstm-locally` | Train LSTM locally. Accepts `ARGS` for additional arguments. |
 | `make apply` | Apply a trained SPILS-Net model to new data using Docker. Accepts `ARGS` for additional arguments. |
 | `make apply-lstm` | Apply a trained LSTM model using Docker. Accepts `ARGS` for additional arguments. |
-| `make simulate` | Run the full FEM simulation and evaluation using Docker. |
+| `make simulate` | Run the full FEM simulation using Docker. Accepts `ARGS` for additional arguments. |
 | `make smoke-test` | Run lightweight tests (no FEM required) using Docker. |
 | `make clean` | Remove temporary files, caches, and virtual environments. |
 
