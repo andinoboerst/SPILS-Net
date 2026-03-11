@@ -183,16 +183,13 @@ def train_lstm(config: SimulationConfig, resume: bool = False):
 
     logger.info(f"Trainable parameters: {reg.get_trainable_params():,}")
 
-    # Data is needed for fit if it wasn't prepped
-    if not resume:
-        x, v, y, _ = load_dataset(config)
-        training_in = np.concatenate((x, v), axis=2)
-        reg.fit(training_in, y, train_indices=config.train_sims, val_indices=config.val_sims, test_indices=config.test_sims)
-    else:
-        # For resume, we still need the data if train_loader is None
-        x, v, y, _ = load_dataset(config)
-        training_in = np.concatenate((x, v), axis=2)
-        reg.fit(training_in, y, train_indices=config.train_sims, val_indices=config.val_sims, test_indices=config.test_sims)
+    x, v, y, _ = load_dataset(config)
+    training_in = np.concatenate((x, v), axis=2)
+
+    start_time = time.time()
+    reg.fit(training_in, y, train_indices=config.train_sims, val_indices=config.val_sims, test_indices=config.test_sims)
+    duration = time.time() - start_time
+    logger.info(f"Training complete in {duration:.2f}s")
 
 
 def train_spils_net(config: SimulationConfig, resume: bool = False):
