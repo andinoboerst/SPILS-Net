@@ -9,11 +9,10 @@ RUN pip install --upgrade pip
 
 # Install Python dependencies from requirements.txt (single source of truth)
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+RUN pip install --no-cache-dir -f https://data.pyg.org/whl/torch-2.2.0+cpu.html -r /tmp/requirements.txt
 
-# Install spilsnet-torch (SPILS-Net architecture package).
-# Replace the URL below with the public release URL once available.
-# RUN pip install --no-cache-dir git+https://github.com/andinoboerst/spilsnet-torch.git
+# spilsnet-torch is provided by the mounted host repository at runtime
+# via docker-compose volume /spilsnet-torch and PYTHONPATH.
 
 # Set the working directory
 WORKDIR /workspace
