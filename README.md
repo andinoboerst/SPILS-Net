@@ -31,8 +31,8 @@ SPILS-Net/
 │   │   └── misc.py              # Data utilities (scaling, splitting, datasets)
 │   ├── mesh_files/              # Auto-generated FEM mesh files (XDMF)
 │   ├── training_data/           # Pre-generated training datasets (.npz) — see Data section
-│   ├── surrogate_models/        # Saved model checkpoints (git-ignored)
-│   └── results/                 # Simulation output files (git-ignored)
+│   ├── surrogate_models/        # Saved model checkpoints
+│   └── results/                 # Simulation output files
 ├── tests/
 │   └── smoke_test.py            # Lightweight tests (no FEM required)
 ├── logs/                        # Training logs

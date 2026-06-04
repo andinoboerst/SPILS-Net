@@ -44,6 +44,12 @@ apply-lstm:
 simulate:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor.py --simulate $(ARGS)"
 
+time-predictor:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor.py --time-predictor $(ARGS)"
+
+time-fem:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor.py --time-fem $(ARGS)"
+
 smoke-test:
 	docker compose run --rm spils-net /bin/bash -c "PYTHONPATH=/workspace pytest tests/smoke_test.py -v"
 
