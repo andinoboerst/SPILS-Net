@@ -31,8 +31,8 @@ SPILS-Net/
 │   │   └── misc.py              # Data utilities (scaling, splitting, datasets)
 │   ├── mesh_files/              # Auto-generated FEM mesh files (XDMF)
 │   ├── training_data/           # Pre-generated training datasets (.npz) — see Data section
-│   ├── surrogate_models/        # Saved model checkpoints (git-ignored)
-│   └── results/                 # Simulation output files (git-ignored)
+│   ├── surrogate_models/        # Saved model checkpoints
+│   └── results/                 # Simulation output files
 ├── tests/
 │   └── smoke_test.py            # Lightweight tests (no FEM required)
 ├── logs/                        # Training logs
@@ -58,7 +58,7 @@ The code has **two distinct dependency layers**:
 | **FEM simulations** | FEniCSx (dolfinx), mpi4py, petsc4py, UFL, pygmsh | Docker (see below) |
 | **ML predictors** | PyTorch, scikit-learn, numpy, lion-pytorch | `requirements.txt` / `environment.yml` |
 
-> **`spilsnet-torch`**: The SPILS-Net architecture requires the `spilsnet-torch` package. Install it separately following the instructions in the [spilsnet-torch repository](https://github.com/andinoboerst/spilsnet-torch).
+> **`spilsnet-torch`**: The SPILS-Net architecture requires the `spilsnet-torch` package. By default, the official PyPI release (`spilsnet-torch==1.0.1`) is installed. To switch to using a local sibling directory for development, see [Local Development vs. PyPI Release](#local-development-vs-pypi-release) below.
 
 ---
 
@@ -86,12 +86,7 @@ This provides the complete environment including FEniCSx for running FEM simulat
    make run     # or: docker compose run --rm spils-net /bin/bash
    ```
 
-4. Inside the container, install `spilsnet-torch`:
-   ```bash
-   pip install git+https://github.com/andinoboerst/spilsnet-torch.git
-   ```
-
-5. **Run specific tasks from your host**:
+4. **Run specific tasks from your host**:
    ```bash
    make train-lstm   # Builds and runs training
    make simulate     # Runs the evaluation simulation
@@ -105,7 +100,6 @@ This option runs the neural-network training and evaluation **without** FEM simu
 ```bash
 conda env create -f environment.yml
 conda activate spils-net
-pip install git+https://github.com/andinoboerst/spilsnet-torch.git
 ```
 
 **Using pip + venv:**
@@ -114,7 +108,6 @@ python -m venv .venv
 source .venv/bin/activate       # macOS/Linux
 # .venv\Scripts\activate        # Windows
 pip install -r requirements.txt
-pip install git+https://github.com/andinoboerst/spilsnet-torch.git
 ```
 
 ### Option 3: Dev Container (VS Code specific)
@@ -131,12 +124,38 @@ If you use VS Code and prefer an integrated development environment, you can use
 
 2. Open in VS Code and click **"Reopen in Container"** when prompted (or use `Ctrl+Shift+P` → `Dev Containers: Reopen in Container`).
 
-3. Install `spilsnet-torch` inside the container:
+3. The working directory inside the container is `/workspace` (mapped to the repository root).
+
+### Local Development vs. PyPI Release
+
+By default, this repository uses the PyPI-released `spilsnet-torch==1.0.1` package. However, if you are developing changes locally inside the sibling `spilsnet-torch` repository (`../spilsnet-torch`), you can configure the environment to use your local implementation instead:
+
+#### Option A: Inside Docker (Docker Compose / Dev Container)
+1. In `docker-compose.yml`, uncomment the developer `PYTHONPATH` line:
+   ```yaml
+   # - PYTHONPATH=/workspace:/spilsnet-torch:/usr/local/lib:/usr/local/dolfinx-real/lib/python3.12/dist-packages
+   ```
+   This will prioritize the `/spilsnet-torch` volume mount containing your local files.
+2. Alternatively, inside the container, run:
    ```bash
-   pip install git+https://github.com/andinoboerst/spilsnet-torch.git
+   make dev-local
+   ```
+   This will install the local directory in editable mode (`pip install -e /spilsnet-torch`).
+3. To switch back to the official PyPI release, run:
+   ```bash
+   make dev-pypi
    ```
 
-4. The working directory inside the container is `/workspace` (mapped to the repository root).
+#### Option B: Local Virtual Environment (Conda / venv)
+1. Run the Makefile target:
+   ```bash
+   make dev-local
+   ```
+   This will automatically detect the local environment and run `pip install -e ../spilsnet-torch`.
+2. To revert to the PyPI package, run:
+   ```bash
+   make dev-pypi
+   ```
 
 ---
 
