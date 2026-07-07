@@ -4,8 +4,7 @@ type: software
 title: "SPILS-Net — Results Reproduction Repository"
 abstract: >
   Results-reproduction companion repository for the paper
-  "SPILS-Net: A Physics-Informed LSTM Surrogate for Interface Traction
-  Prediction in Domain-Decomposition Simulations".
+  "Accelerating Transient Structural Dynamics via SPILS-Net, a Physics-Derived Latent Space Subdomain Surrogate".
   Contains FEniCSx-based FEM simulation code and neural-network predictor
   wrappers (LSTM baseline and SPILS-Net) used to generate all numerical
   results in the paper.
@@ -16,7 +15,7 @@ authors:
 repository-code: "https://github.com/andinoboerst/SPILS-Net"
 license: AGPL-3.0
 version: "1.0.0"
-date-released: "2026-03-05"
+date-released: "2026-07-08"
 doi: "[DOI — to be added upon publication]"
 keywords:
   - SPILS-Net
@@ -30,7 +29,7 @@ keywords:
 preferred-citation:
   type: article
   title: >
-    SPILS-Net: A Gray-box Neural Network for History-Dependent Rheological Surrogate Modeling
+    Accelerating Transient Structural Dynamics via SPILS-Net, a Physics-Derived Latent Space Subdomain Surrogate
   authors:
     - family-names: "Börst"
       given-names: "Andino"
@@ -45,6 +44,23 @@ preferred-citation:
       given-names: "Gabriel"
     - family-names: "Larráyoz"
       given-names: "Xabier"
-  journal: "[Journal Name]"
+  journal: "Computer Methods in Applied Mechanics and Engineering"
   year: 2026
   doi: "[DOI — to be added upon publication]"
+
+references:
+  - type: software
+    title: "spilsnet-torch: PyTorch Implementation of SPILS-Net"
+    authors:
+      - family-names: "Börst"
+        given-names: "Andino"
+        orcid: "https://orcid.org/0009-0005-0222-3851"
+    repository-code: "https://github.com/andinoboerst/spilsnet-torch"
+    url: "https://pypi.org/project/spilsnet-torch/"
+    version: "1.0.1"
+    year: 2026
+    license: AGPL-3.0
+    abstract: >
+      PyTorch implementation of the SPILS-Net neural-network architecture,
+      distributed as the spilsnet-torch package on PyPI. Used by the
+      SPILS-Net results-reproduction repository.
