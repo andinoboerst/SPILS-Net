@@ -264,8 +264,8 @@ If you use this code in your research, please cite the associated paper and this
   title={SPILS-Net — Results Reproduction Repository},
   year={2026},
   publisher={Zenodo},
-  url={https://doi.org/10.5281/zenodo.21236798},
-  doi={10.5281/zenodo.21236798},
+  url={https://doi.org/10.5281/zenodo.21236797},
+  doi={10.5281/zenodo.21236797},
   version={1.0.1}
 }
 ```
@@ -277,8 +277,8 @@ If you use this code in your research, please cite the associated paper and this
   title={spilsnet-torch: PyTorch Implementation of SPILS-Net},
   year={2026},
   publisher={Zenodo},
-  url={https://doi.org/10.5281/zenodo.21236781},
-  doi={10.5281/zenodo.21236781},
+  url={https://doi.org/10.5281/zenodo.21236780},
+  doi={10.5281/zenodo.21236780},
   version={1.0.1}
 }
 ```
