@@ -11,9 +11,7 @@ RUN pip install --upgrade pip
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Install spilsnet-torch (SPILS-Net architecture package).
-# Replace the URL below with the public release URL once available.
-# RUN pip install --no-cache-dir git+https://github.com/andinoboerst/spilsnet-torch.git
+# spilsnet-torch (SPILS-Net architecture) is installed as part of requirements.txt.
 
 # Set the working directory
 WORKDIR /workspace

@@ -45,5 +45,7 @@ dependencies:
     - imageio[ffmpeg]
     # Jupyter
     - jupyter>=1.0,<2
-    # spilsnet-torch — install separately after activating env:
-    # pip install git+https://github.com/andinoboerst/spilsnet-torch.git
+    # Default PyPI package
+    - spilsnet-torch==1.0.1
+    # To use the local implementation for development, install in editable mode:
+    # - pip install -e ../spilsnet-torch

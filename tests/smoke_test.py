@@ -133,7 +133,7 @@ class TestLSTMNetwork:
         from nn_predictors.lstm import LSTMNetwork
 
         X, Y = make_synthetic_data()
-        net = LSTMNetwork(X, Y)
+        net = LSTMNetwork(X.shape[2], Y.shape[2])
 
         assert net.input_size == X.shape[2]
         assert net.output_size == Y.shape[2]
@@ -142,7 +142,7 @@ class TestLSTMNetwork:
         from nn_predictors.lstm import LSTMNetwork
 
         X, Y = make_synthetic_data()
-        net = LSTMNetwork(X, Y)
+        net = LSTMNetwork(X.shape[2], Y.shape[2])
 
         n_params = net.get_trainable_params()
         assert n_params > 0
@@ -163,7 +163,7 @@ class TestLSTMNetwork:
         from nn_predictors.lstm import LSTMNetwork
 
         X, Y = make_synthetic_data()
-        net = LSTMNetwork(X, Y)
+        net = LSTMNetwork(X.shape[2], Y.shape[2])
         net.set_hyperparameters()
 
         assert hasattr(net, "learning_rate")
@@ -239,12 +239,12 @@ class TestSPILSNetIntegration:
 
     def test_spilsnet_fit_predict(self, minimal_config):
         from spilsnet import SPILSNet
-        # Internal state
-        I = np.random.randn(5, 10, 2)
-
-        # X input size for spilsnet usually corresponds to nodal positions
-        X_dummy = np.random.randn(5, 10, 10)
-        Y_dummy = np.random.randn(5, 10, 10)
+        # Use enough simulations so the automatic 70/15/15 split gives
+        # at least 1 validation simulation (requires n >= 7).
+        n_sims = 10
+        I = np.random.randn(n_sims, 10, 2)
+        X_dummy = np.random.randn(n_sims, 10, 10)
+        Y_dummy = np.random.randn(n_sims, 10, 10)
 
         net = SPILSNet(model_config=minimal_config)
         net.num_epochs = 1
