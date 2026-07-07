@@ -264,8 +264,8 @@ If you use this code in your research, please cite the associated paper and this
   year={2026},
   publisher={GitHub},
   url={https://github.com/andinoboerst/SPILS-Net},
-  doi={10.5281/zenodo.21236528},
-  version={1.0.0}
+  doi={10.5281/zenodo.21236798},
+  version={1.0.1}
 }
 ```
 
@@ -277,7 +277,7 @@ If you use this code in your research, please cite the associated paper and this
   year={2026},
   publisher={GitHub},
   url={https://github.com/andinoboerst/spilsnet-torch},
-  doi={10.5281/zenodo.21236497},
+  doi={10.5281/zenodo.21236781},
   version={1.0.1}
 }
 ```

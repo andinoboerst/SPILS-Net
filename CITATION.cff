@@ -16,7 +16,7 @@ repository-code: "https://github.com/andinoboerst/SPILS-Net"
 license: AGPL-3.0
 version: "1.0.0"
 date-released: "2026-07-08"
-doi: "10.5281/zenodo.21236528"
+doi: "10.5281/zenodo.21236798"
 keywords:
   - SPILS-Net
   - neural-network surrogate
@@ -64,4 +64,4 @@ references:
       PyTorch implementation of the SPILS-Net neural-network architecture,
       distributed as the spilsnet-torch package on PyPI. Used by the
       SPILS-Net results-reproduction repository.
-    doi: "10.5281/zenodo.21236497"
+    doi: "10.5281/zenodo.21236781"
