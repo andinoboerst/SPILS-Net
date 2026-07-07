@@ -1,6 +1,7 @@
 # SPILS-Net — Results Reproduction Repository
 
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](LICENSE)
+[![DOI](https://img.shields.io/badge/DOI-10.1234/zenodo.1234567-blue.svg)](https://doi.org/10.5281/zenodo.21236798)
 
 > **Companion repository** to the paper:
 >
