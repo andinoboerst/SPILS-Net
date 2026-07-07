@@ -4,8 +4,8 @@
 
 > **Companion repository** to the paper:
 >
-> *"SPILS-Net: A Gray-box Neural Network for History-Dependent Rheological Surrogate Modeling"*
-> — *Andino Börst et al.*, *[Journal]*, [Year]. DOI: `[to be added upon publication]`
+> *Accelerating Transient Structural Dynamics via SPILS-Net, a Physics-Derived Latent Space Subdomain Surrogate"*
+> — *Andino Börst et al.*, *Computer Methods in Applied Mechanics and Engineering*, 2026. DOI: `[to be added upon publication]`
 
 This repository provides all the code needed to **reproduce the numerical results** presented in the paper. It is designed to be fully reproducible — either inside the provided Docker Dev Container (recommended for FEM simulations) or in a local Python virtual environment (for training and evaluating the neural-network predictors only).
 
