@@ -263,8 +263,8 @@ If you use this code in your research, please cite the associated paper and this
   author={Börst, Andino},
   title={SPILS-Net — Results Reproduction Repository},
   year={2026},
-  publisher={GitHub},
-  url={https://github.com/andinoboerst/SPILS-Net},
+  publisher={Zenodo},
+  url={[https://github.com/andinoboerst/SPILS-Net](https://doi.org/10.5281/zenodo.21236798)},
   doi={10.5281/zenodo.21236798},
   version={1.0.1}
 }
@@ -276,8 +276,8 @@ If you use this code in your research, please cite the associated paper and this
   author={Börst, Andino},
   title={spilsnet-torch: PyTorch Implementation of SPILS-Net},
   year={2026},
-  publisher={GitHub},
-  url={https://github.com/andinoboerst/spilsnet-torch},
+  publisher={Zenodo},
+  url={[https://github.com/andinoboerst/spilsnet-torch](https://doi.org/10.5281/zenodo.21236781)},
   doi={10.5281/zenodo.21236781},
   version={1.0.1}
 }
