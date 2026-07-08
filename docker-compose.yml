@@ -8,7 +8,9 @@ services:
       - .:/workspace
       - ../spilsnet-torch:/spilsnet-torch
     environment:
-      - PYTHONPATH=/workspace:/spilsnet-torch:/usr/local/lib:/usr/local/dolfinx-real/lib/python3.12/dist-packages
+      - PYTHONPATH=/workspace:/usr/local/lib:/usr/local/dolfinx-real/lib/python3.12/dist-packages
+      # To use the local implementation of spilsnet-torch (mounted at /spilsnet-torch), uncomment the line below:
+      # - PYTHONPATH=/workspace:/spilsnet-torch:/usr/local/lib:/usr/local/dolfinx-real/lib/python3.12/dist-packages
       - DISPLAY=host.docker.internal:0
     # Add memory limits as requested in devcontainer.json
     shm_size: '32gb'

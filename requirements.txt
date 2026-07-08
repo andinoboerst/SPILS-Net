@@ -8,8 +8,9 @@
 #       NOT included here — it is installed via the Docker Dev
 #       Container (.devcontainer/Dockerfile).
 #
-# NOTE: spilsnet-torch must be installed separately:
-#   pip install git+https://github.com/andinoboerst/spilsnet-torch.git
+# NOTE: spilsnet-torch (PyPI release) is now installed by default.
+# To use the local implementation for development, install in editable mode:
+#   pip install -e ../spilsnet-torch
 # ============================================================
 
 # Core scientific
@@ -21,6 +22,7 @@ torch>=2.2,<3
 torchvision>=0.17,<1
 lion-pytorch>=0.2,<1
 safetensors>=0.4,<1
+spilsnet-torch==1.0.1
 torch-geometric>=2.0,<3
 
 # Hyperparameter tuning
@@ -40,3 +42,6 @@ pygmsh>=7.1.1
 
 # Jupyter
 jupyter>=1.0,<2
+
+# Testing
+pytest>=8.0,<9

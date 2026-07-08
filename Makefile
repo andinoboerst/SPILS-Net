@@ -4,7 +4,7 @@
 IMAGE_NAME = spils-net-repro
 CONTAINER_NAME = spils-net-instance
 
-.PHONY: build run train-lstm train-spilsnet simulate smoke-test test clean help
+.PHONY: build run train-lstm train-spilsnet simulate smoke-test test clean help dev-local dev-pypi
 
 help:
 	@echo "SPILS-Net Reproduction Makefile"
@@ -15,6 +15,8 @@ help:
 	@echo "  make train-lstm     Train the LSTM baseline (runs inside Docker)"
 	@echo "  make simulate       Run the full FEM simulation (runs inside Docker)"
 	@echo "  make smoke-test     Run lightweight ML tests (can be run locally or in Docker)"
+	@echo "  make dev-local      Install the local spilsnet-torch in editable mode for dev"
+	@echo "  make dev-pypi       Install the PyPI-released spilsnet-torch (v1.0.1)"
 	@echo "  make clean          Remove temporary files and caches"
 
 build:
@@ -44,8 +46,33 @@ apply-lstm:
 simulate:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor.py --simulate $(ARGS)"
 
+time-predictor:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor.py --time-predictor $(ARGS)"
+
+time-fem:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor.py --time-fem $(ARGS)"
+
 smoke-test:
 	docker compose run --rm spils-net /bin/bash -c "PYTHONPATH=/workspace pytest tests/smoke_test.py -v"
+
+# ================================================================== #
+# Development & Mode Switching
+# ================================================================== #
+
+dev-local:
+	@echo "Configuring environment to use the local spilsnet-torch codebase..."
+	@if [ -d /spilsnet-torch ]; then \
+		pip install -e /spilsnet-torch; \
+	elif [ -d ../spilsnet-torch ]; then \
+		pip install -e ../spilsnet-torch; \
+	else \
+		echo "Error: Sibling directory '../spilsnet-torch' not found."; \
+		exit 1; \
+	fi
+
+dev-pypi:
+	@echo "Configuring environment to use PyPI release spilsnet-torch==1.0.1..."
+	pip install --force-reinstall spilsnet-torch==1.0.1
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +

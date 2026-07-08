@@ -344,7 +344,7 @@ class TCTSimulation(StructuralSimulation):
         # non_interface_nodes_local = np.array(list(set(self.local_overlap_nodes) - set(self.interface_nodes_local)))
 
         # self.plot_mesh(mesh_bottom, self.interface_nodes_local, self.interface_facets)
-        # self.plot_mesh(self.mesh, self.interface_nodes)
+        # self.plot_mesh(self.mesh, self.interface_nodes, name="05_scaled_domain")
 
     def _preprocess(self) -> None:
         super()._preprocess()

@@ -291,8 +291,8 @@ def evaluate_model(predictor: Any, config: SimulationConfig):
     np.save(RESULTS_FOLDER / f"sm_results_internal_{suffix}", tct_predict.data_internal)
 
 
-def apply_lstm(config: SimulationConfig):
-    """Loads and applies an LSTM predictor."""
+def load_lstm(config: SimulationConfig) -> LSTMNetwork:
+    """Loads an LSTM model for evaluation."""
     x, v, y, _ = load_dataset(config)
     training_in = np.concatenate((x, v), axis=2)
 
@@ -302,11 +302,11 @@ def apply_lstm(config: SimulationConfig):
     if not hasattr(predictor, "test_loader") or predictor.test_loader is None:
         predictor.prep_data(training_in, y, train_indices=config.train_sims, val_indices=config.val_sims, test_indices=config.test_sims)
 
-    evaluate_model(predictor, config)
+    return predictor
 
 
-def apply_spils_net(config: SimulationConfig):
-    """Loads and applies a SPILS-Net predictor."""
+def load_spils_net(config: SimulationConfig) -> SPILSNet:
+    """Loads a SPILS-Net model for evaluation."""
     x, _, y, internal = load_dataset(config)
 
     model_path = MODEL_FOLDER / f"model_data_{config.data_version}_spils_net_v{config.predictor_version}"
@@ -316,6 +316,73 @@ def apply_spils_net(config: SimulationConfig):
 
     # Prepare data (test loader) for evaluation
     predictor.prep_data(x, internal, y, train_indices=config.train_sims, val_indices=config.val_sims, test_indices=config.test_sims)
+
+    return predictor
+
+
+def time_predictor(predictor: Any, config: SimulationConfig):
+    """Times the inference speed of the predictor."""
+
+    predictor.initialize_memory_variables()
+
+    # Solve predicted vs true
+    tct = Applicator(
+        predictor,
+        frequency=config.frequency,
+        constitutive_model=config.constitutive_law,
+        configuration=config.problem_configuration
+    )
+
+    start_time = time.time()
+    tct.run()
+    duration = time.time() - start_time
+
+    logger.info(f"{config.predictor_method.upper()} inference time: {duration:.4f}s")
+
+
+def time_spils_run(config: SimulationConfig):
+    """Times SPILS-Net inference speed."""
+    logger.info("Timing SPILS-Net inference...")
+
+    predictor = load_spils_net(config)
+    time_predictor(predictor, config)
+
+
+def time_lstm_run(config: SimulationConfig):
+    """Times LSTM inference speed."""
+    logger.info("Timing LSTM inference...")
+
+    predictor = load_lstm(config)
+    time_predictor(predictor, config)
+
+
+def time_fem_run(config: SimulationConfig):
+    """Times a full FEM simulation run."""
+    logger.info("Timing FEM simulation...")
+
+    tct = Extractor(
+        frequency=config.frequency,
+        constitutive_model=config.constitutive_law,
+        configuration=config.problem_configuration
+    )
+
+    start_time = time.time()
+    tct.run()
+    duration = time.time() - start_time
+
+    logger.info(f"FEM simulation time: {duration:.4f}s")
+
+
+def apply_lstm(config: SimulationConfig):
+    """Loads and applies an LSTM predictor."""
+    predictor = load_lstm(config)
+
+    evaluate_model(predictor, config)
+
+
+def apply_spils_net(config: SimulationConfig):
+    """Loads and applies a SPILS-Net predictor."""
+    predictor = load_spils_net(config)
 
     evaluate_model(predictor, config)
 
@@ -359,6 +426,8 @@ def main():
     parser.add_argument("--generate", action="store_true", help="Generate training set if missing")
     parser.add_argument("--resume", action="store_true", help="Resume training from checkpoint")
     parser.add_argument("--simulate", action="store_true", help="Generate simulation data")
+    parser.add_argument("--time-predictor", action="store_true", help="Time Predictor inference")
+    parser.add_argument("--time-fem", action="store_true", help="Time FEM simulation")
 
     args = parser.parse_args()
 
@@ -389,8 +458,17 @@ def main():
     if args.simulate:
         generate_simulation_data(config)
 
+    if args.time_predictor:
+        if config.predictor_method == "lstm":
+            time_lstm_run(config)
+        else:
+            time_spils_run(config)
+
+    if args.time_fem:
+        time_fem_run(config)
+
     # Default behavior if no action specified
-    if not (args.train or args.apply or args.generate or args.simulate):
+    if not (args.train or args.apply or args.generate or args.simulate or args.time_predictor or args.time_fem):
         parser.print_help()
 
 

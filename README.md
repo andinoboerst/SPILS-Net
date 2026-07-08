@@ -1,11 +1,12 @@
 # SPILS-Net — Results Reproduction Repository
 
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](LICENSE)
+[![License: AGPL](https://img.shields.io/badge/License-AGPL-yellow.svg)](LICENSE)
+[![DOI](https://img.shields.io/badge/DOI-10.1234/zenodo.1234567-blue.svg)](https://doi.org/10.5281/zenodo.21236798)
 
 > **Companion repository** to the paper:
 >
-> *"SPILS-Net: A Gray-box Neural Network for History-Dependent Rheological Surrogate Modeling"*
-> — *Andino Börst et al.*, *[Journal]*, [Year]. DOI: `[to be added upon publication]`
+> *"Accelerating Transient Structural Dynamics via SPILS-Net, a Physics-Derived Latent Space Subdomain Surrogate"*
+> — *Andino Börst et al.*, *Computer Methods in Applied Mechanics and Engineering*, 2026. DOI: `[to be added upon publication]`
 
 This repository provides all the code needed to **reproduce the numerical results** presented in the paper. It is designed to be fully reproducible — either inside the provided Docker Dev Container (recommended for FEM simulations) or in a local Python virtual environment (for training and evaluating the neural-network predictors only).
 
@@ -31,8 +32,8 @@ SPILS-Net/
 │   │   └── misc.py              # Data utilities (scaling, splitting, datasets)
 │   ├── mesh_files/              # Auto-generated FEM mesh files (XDMF)
 │   ├── training_data/           # Pre-generated training datasets (.npz) — see Data section
-│   ├── surrogate_models/        # Saved model checkpoints (git-ignored)
-│   └── results/                 # Simulation output files (git-ignored)
+│   ├── surrogate_models/        # Saved model checkpoints
+│   └── results/                 # Simulation output files
 ├── tests/
 │   └── smoke_test.py            # Lightweight tests (no FEM required)
 ├── logs/                        # Training logs
@@ -58,7 +59,7 @@ The code has **two distinct dependency layers**:
 | **FEM simulations** | FEniCSx (dolfinx), mpi4py, petsc4py, UFL, pygmsh | Docker (see below) |
 | **ML predictors** | PyTorch, scikit-learn, numpy, lion-pytorch | `requirements.txt` / `environment.yml` |
 
-> **`spilsnet-torch`**: The SPILS-Net architecture requires the `spilsnet-torch` package. Install it separately following the instructions in the [spilsnet-torch repository](https://github.com/andinoboerst/spilsnet-torch).
+> **`spilsnet-torch`**: The SPILS-Net architecture requires the `spilsnet-torch` package. By default, the official PyPI release (`spilsnet-torch==1.0.1`) is installed. To switch to using a local sibling directory for development, see [Local Development vs. PyPI Release](#local-development-vs-pypi-release) below.
 
 ---
 
@@ -86,12 +87,7 @@ This provides the complete environment including FEniCSx for running FEM simulat
    make run     # or: docker compose run --rm spils-net /bin/bash
    ```
 
-4. Inside the container, install `spilsnet-torch`:
-   ```bash
-   pip install git+https://github.com/andinoboerst/spilsnet-torch.git
-   ```
-
-5. **Run specific tasks from your host**:
+4. **Run specific tasks from your host**:
    ```bash
    make train-lstm   # Builds and runs training
    make simulate     # Runs the evaluation simulation
@@ -105,7 +101,6 @@ This option runs the neural-network training and evaluation **without** FEM simu
 ```bash
 conda env create -f environment.yml
 conda activate spils-net
-pip install git+https://github.com/andinoboerst/spilsnet-torch.git
 ```
 
 **Using pip + venv:**
@@ -114,7 +109,6 @@ python -m venv .venv
 source .venv/bin/activate       # macOS/Linux
 # .venv\Scripts\activate        # Windows
 pip install -r requirements.txt
-pip install git+https://github.com/andinoboerst/spilsnet-torch.git
 ```
 
 ### Option 3: Dev Container (VS Code specific)
@@ -131,12 +125,38 @@ If you use VS Code and prefer an integrated development environment, you can use
 
 2. Open in VS Code and click **"Reopen in Container"** when prompted (or use `Ctrl+Shift+P` → `Dev Containers: Reopen in Container`).
 
-3. Install `spilsnet-torch` inside the container:
+3. The working directory inside the container is `/workspace` (mapped to the repository root).
+
+### Local Development vs. PyPI Release
+
+By default, this repository uses the PyPI-released `spilsnet-torch==1.0.1` package. However, if you are developing changes locally inside the sibling `spilsnet-torch` repository (`../spilsnet-torch`), you can configure the environment to use your local implementation instead:
+
+#### Option A: Inside Docker (Docker Compose / Dev Container)
+1. In `docker-compose.yml`, uncomment the developer `PYTHONPATH` line:
+   ```yaml
+   # - PYTHONPATH=/workspace:/spilsnet-torch:/usr/local/lib:/usr/local/dolfinx-real/lib/python3.12/dist-packages
+   ```
+   This will prioritize the `/spilsnet-torch` volume mount containing your local files.
+2. Alternatively, inside the container, run:
    ```bash
-   pip install git+https://github.com/andinoboerst/spilsnet-torch.git
+   make dev-local
+   ```
+   This will install the local directory in editable mode (`pip install -e /spilsnet-torch`).
+3. To switch back to the official PyPI release, run:
+   ```bash
+   make dev-pypi
    ```
 
-4. The working directory inside the container is `/workspace` (mapped to the repository root).
+#### Option B: Local Virtual Environment (Conda / venv)
+1. Run the Makefile target:
+   ```bash
+   make dev-local
+   ```
+   This will automatically detect the local environment and run `pip install -e ../spilsnet-torch`.
+2. To revert to the PyPI package, run:
+   ```bash
+   make dev-pypi
+   ```
 
 ---
 
@@ -226,25 +246,40 @@ If you use this code in your research, please cite the associated paper and this
 
 ### Paper Citation
 ```bibtex
-@article{boerst2026spilsnet,
-  title={SPILS-Net: A Gray-box Neural Network for History-Dependent Rheological Surrogate Modeling},
+@article{boerst_2026_spilsnet,
+  title={Accelerating Transient Structural Dynamics via SPILS-Net, a Physics-Derived Latent Space Subdomain Surrogate},
   author={Börst, Andino and Díez, Pedro and Zlotnik, Sergio and Cavaliere, Fabiola and Curtosi, Gabriel and Larráyoz, Xabier},
-  journal={[Journal Name]},
+  journal={Computer Methods in Applied Mechanics and Engineering},
   year={2026},
   doi={[DOI — to be added upon publication]}
 }
 ```
 
 ### Software Citation
+
+**Results-reproduction repository** (this repository):
 ```bibtex
-@software{boerst_spils_net_2026,
+@software{boerst_2026_spilsnet_results,
   author={Börst, Andino},
   title={SPILS-Net — Results Reproduction Repository},
   year={2026},
-  publisher={GitHub},
-  url={https://github.com/andinoboerst/SPILS-Net},
-  doi={[DOI — to be added upon publication]},
-  version={1.0.0}
+  publisher={Zenodo},
+  url={https://doi.org/10.5281/zenodo.21236797},
+  doi={10.5281/zenodo.21236797},
+  version={1.0.1}
+}
+```
+
+**Neural-network architecture package** ([spilsnet-torch](https://github.com/andinoboerst/spilsnet-torch), available on [PyPI](https://pypi.org/project/spilsnet-torch/)):
+```bibtex
+@software{boerst_2026_spilsnet_torch,
+  author={Börst, Andino},
+  title={spilsnet-torch: PyTorch Implementation of SPILS-Net},
+  year={2026},
+  publisher={Zenodo},
+  url={https://doi.org/10.5281/zenodo.21236780},
+  doi={10.5281/zenodo.21236780},
+  version={1.0.1}
 }
 ```
 
