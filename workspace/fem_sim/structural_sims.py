@@ -2,7 +2,6 @@ import abc
 import numpy as np
 import logging
 from functools import partial
-from PIL import Image, ImageDraw
 
 import pyvista
 from mpi4py import MPI
@@ -424,47 +423,36 @@ class FenicsxSimulation(metaclass=abc.ABCMeta):
         create_mesh_animation(plot_mesh, scalar_value, variables.get(vector_variable), **kwargs)
 
     def plot_mesh(self, mesh, nodes=None, facets=None, name: str = "mesh") -> None:
-        mesh_to_plot = mesh
-        interface_nodes_local = nodes
-        interface_facets_local = facets
+        mesh_to_plot = mesh  # CHANGE: Must plot the submesh!
+        interface_nodes_local = nodes  # The local indices (local to mesh_bottom)
+        interface_facets_local = facets  # The local indices of the interface facets
         tdim = mesh_to_plot.topology.dim
         fdim = tdim - 1
 
         mesh_to_plot.topology.create_connectivity(fdim, tdim)
 
+        # 1. Create the PyVista/VTK grid from the submesh
+        # NOTE: Using mesh_bottom for the submesh plot.
         grid_components = vtk_mesh(mesh_to_plot, tdim)
         grid = pyvista.UnstructuredGrid(*grid_components)
 
-        # 2. Extract and Split Coordinates of Interface Nodes
+        # 2. Extract Coordinates of Interface Nodes (for Layer 2)
         if nodes is not None:
             submesh_coords = mesh_to_plot.geometry.x
             interface_coords = submesh_coords[interface_nodes_local]
-            num_points = len(interface_coords)  # Should be 51
-
-            # --- NEW: Split the indices based on your range ---
-            # Indices for the green subset: 0, 8, 16, 24, 32, 40, 48
-            green_indices = np.arange(0, num_points, 8)
-
-            # Indices for the remaining red nodes (everything NOT in green_indices)
-            red_indices = np.setdiff1d(np.arange(num_points), green_indices)
-
-            # Create two separate PolyData objects
-            green_points = pyvista.PolyData(interface_coords[green_indices])
-            red_points = pyvista.PolyData(interface_coords[red_indices])
+            interface_points = pyvista.PolyData(interface_coords)
 
         if facets is not None:
+            # --- NEW STEP: 3. Create MeshTags for Facets ---
             interface_marker = 99
+            # Create an array of markers (99) corresponding to your interface facets
             facets_marker = np.full_like(interface_facets_local, interface_marker, dtype=np.int32)
+
+            # Create the MeshTags object on the submesh topology
             facet_tags = meshtags(mesh_to_plot, fdim, interface_facets_local, facets_marker)
 
-        # --- High-DPI Scaling Setup ---
-        hires_scale = 4
-        scaled_point_size = 15 * hires_scale
-        scaled_line_width = 2 * hires_scale
-
+        # 4. Setup and Plotter
         p = pyvista.Plotter(off_screen=True)
-        p.set_background('white')
-        p.enable_anti_aliasing('ssaa')
 
         # --- Layer 1: Plot the Submesh ---
         p.add_mesh(
@@ -472,89 +460,42 @@ class FenicsxSimulation(metaclass=abc.ABCMeta):
             show_edges=True,
             color='skyblue',
             lighting=False,
-            label='Bottom Submesh Cells',
-            line_width=scaled_line_width,
+            label='Bottom Submesh Cells'
         )
 
         if nodes is not None:
-            # --- Layer 2a: Plot the Standard Interface Nodes (Red) ---
+            # --- Layer 2: Plot the Interface Nodes ---
             p.add_mesh(
-                red_points,
+                interface_points,
                 color='red',
                 render_points_as_spheres=True,
-                point_size=scaled_point_size,
-                label='Standard Interface Nodes',
-            )
-
-            # --- Layer 2b: Plot the Subset Interface Nodes (Green) ---
-            p.add_mesh(
-                green_points,
-                color='green',
-                render_points_as_spheres=True,
-                # Optional: multiply scaled_point_size by 1.5 here if you want
-                # the green spheres slightly larger so they pop out even more
-                point_size=scaled_point_size,
-                label='Subset Interface Nodes'
+                point_size=10,
+                label='Interface Nodes'
             )
 
         if facets is not None:
             # --- Layer 3: Plot the Interface Facets ---
+            # Extract the VTK mesh data for the facets, passing the facet_tags
+            # We specifically request the entities of dimension fdim and pass the tags
             facet_grid_components = vtk_mesh(mesh_to_plot, fdim, entities=interface_facets_local)
             facet_grid = pyvista.UnstructuredGrid(*facet_grid_components)
 
+            # Add the facet grid, setting the style to 'wireframe' and increasing line_width
             p.add_mesh(
                 facet_grid,
-                color='lime',
+                color='lime',  # Bright color to stand out
                 style='wireframe',
-                line_width=scaled_line_width,
+                line_width=5,
                 lighting=False,
                 label='Interface Facets'
             )
 
         p.view_xy()
 
-        # 5. Save as an ultra-high-resolution TIFF
-        filename = f"figures/{name}.png"
-        p.screenshot(filename, scale=hires_scale)
+        # 5. Save the screenshot
+        filename = f"{name}.png"
+        p.screenshot(filename)
         p.close()
-
-        # Open the high-res image we just saved
-        img = Image.open(filename)
-
-        # Convert to grayscale to evaluate pixel brightness
-        gray = img.convert("L")
-
-        # Threshold: if a pixel is almost white (> 250), make it background (0).
-        # Otherwise, make it foreground (255). This cleans up any edge artifacts.
-        bw = gray.point(lambda x: 0 if x > 250 else 255)
-
-        draw = ImageDraw.Draw(bw)
-        w, h = bw.size
-        border = 3  # Wipe out the outermost 3 pixels
-
-        # Draw background (0) over the absolute edges of the mask
-        draw.rectangle([0, 0, w, border], fill=0)           # Top edge
-        draw.rectangle([0, h - border, w, h], fill=0)       # Bottom edge
-        draw.rectangle([0, 0, border, h], fill=0)           # Left edge
-        draw.rectangle([w - border, 0, w, h], fill=0)       # Right edge
-
-        # Get the strict bounding box of the domain elements
-        bbox = bw.getbbox()
-
-        if bbox:
-            # Optional: Add a small pixel padding so the mesh doesn't touch the absolute edge
-            # Because we scaled the image up so much, 50-100 pixels is a good padding size
-            pad = 20
-            padded_bbox = (
-                max(0, bbox[0] - pad),
-                max(0, bbox[1] - pad),
-                min(img.size[0], bbox[2] + pad),
-                min(img.size[1], bbox[3] + pad)
-            )
-
-            # Crop the image and overwrite the original file
-            cropped_img = img.crop(padded_bbox)
-            cropped_img.save(filename)
 
 
 class StructuralSimulation(FenicsxSimulation):

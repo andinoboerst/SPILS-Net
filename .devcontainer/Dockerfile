@@ -11,7 +11,8 @@ RUN pip install --upgrade pip
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -f https://data.pyg.org/whl/torch-2.2.0+cpu.html -r /tmp/requirements.txt
 
-# spilsnet-torch (SPILS-Net architecture) is installed as part of requirements.txt.
+# spilsnet-torch is provided by the mounted host repository at runtime
+# via docker-compose volume /spilsnet-torch and PYTHONPATH.
 
 # Set the working directory
 WORKDIR /workspace
