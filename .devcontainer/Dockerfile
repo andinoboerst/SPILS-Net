@@ -9,7 +9,7 @@ RUN pip install --upgrade pip
 
 # Install Python dependencies from requirements.txt (single source of truth)
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -f https://data.pyg.org/whl/torch-2.2.0+cpu.html -r /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # spilsnet-torch (SPILS-Net architecture) is installed as part of requirements.txt.
 

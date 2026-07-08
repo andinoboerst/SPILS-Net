@@ -35,7 +35,7 @@ except (RuntimeError, ModuleNotFoundError):
 from nn_predictors.misc import train_val_test_split_tct
 from nn_predictors.lstm import LSTMNetwork
 from spilsnet import SPILSNet, set_seed
-from spilsnet_params import SPILSNET_BENCHMARK_PARAMETERS, SPILSNET_SCALED_PARAMETERS, SPILSNETGRAPH_SCALED_PARAMETERS, SPILSNETGRAPH_BENCHMARK_PARAMETERS
+from spilsnet_params import SPILSNET_BENCHMARK_PARAMETERS, SPILSNET_SCALED_PARAMETERS
 
 set_seed(8)
 
@@ -52,10 +52,8 @@ DEFAULT_TRAIN_SIMS, DEFAULT_VAL_SIMS, DEFAULT_TEST_SIMS = train_val_test_split_t
 
 
 PARAMETER_CONFIGS = {
-    # "benchmark": SPILSNET_BENCHMARK_PARAMETERS,
-    "benchmark": SPILSNETGRAPH_BENCHMARK_PARAMETERS,
-    # "scaled": SPILSNET_SCALED_PARAMETERS
-    "scaled": SPILSNETGRAPH_SCALED_PARAMETERS,
+    "benchmark": SPILSNET_BENCHMARK_PARAMETERS,
+    "scaled": SPILSNET_SCALED_PARAMETERS
 }
 
 
