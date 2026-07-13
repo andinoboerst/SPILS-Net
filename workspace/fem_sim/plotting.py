@@ -10,7 +10,8 @@ def format_vectors_from_flat(u: np.ndarray, n_dim: int = 2) -> np.ndarray:
     for u_i in u:
         u_x.append(u_i[::n_dim])
         u_y.append(u_i[1::n_dim])
-        u_z.append(u_i[2::n_dim])
+        if n_dim == 3:
+            u_z.append(u_i[2::n_dim])
 
     if n_dim == 2:
         u_z = [[0] * len(u_x[0])] * len(u_x)
@@ -66,8 +67,6 @@ def create_mesh_animation(mesh, scalars=None, vectors=None, name: str = "result"
         "name": "grid",
     }
 
-    pv.start_xvfb(0.5)  # Start virtual framebuffer for plotting
-
     grid_base = pv.UnstructuredGrid(*mesh)
     grid_base['scalars'] = scalars[0]
     grid_base.set_active_scalars('scalars')
@@ -75,7 +74,7 @@ def create_mesh_animation(mesh, scalars=None, vectors=None, name: str = "result"
     grid_base.set_active_vectors('vectors')
     grid = grid_base.warp_by_vector()
 
-    plotter = pv.Plotter()
+    plotter = pv.Plotter(off_screen=True)
     plotter.open_gif(f"{name}.gif")
 
     plotter.add_mesh(
@@ -85,7 +84,10 @@ def create_mesh_animation(mesh, scalars=None, vectors=None, name: str = "result"
 
     text = plotter.add_text(text=f"0/{time_steps}", position="lower_left", font_size=8)
 
-    plotter.view_xy()
+    if np.any(mesh[2][:, 2] != 0):
+        plotter.view_isometric()
+    else:
+        plotter.view_xy()
     plotter.camera.zoom(1.3)
 
     for i, (scalar, vector) in enumerate(zip(scalars, vectors)):

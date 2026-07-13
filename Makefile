@@ -14,6 +14,7 @@ help:
 	@echo "  make train          Train the SPILS-Net model (runs inside Docker)"
 	@echo "  make train-lstm     Train the LSTM baseline (runs inside Docker)"
 	@echo "  make simulate       Run the full FEM simulation (runs inside Docker)"
+	@echo "  make simulate-3d    Run the full 3D FEM simulation (runs inside Docker)"
 	@echo "  make smoke-test     Run lightweight ML tests (can be run locally or in Docker)"
 	@echo "  make dev-local      Install the local spilsnet-torch in editable mode for dev"
 	@echo "  make dev-pypi       Install the PyPI-released spilsnet-torch (v1.0.1)"
@@ -45,6 +46,9 @@ apply-lstm:
 
 simulate:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor.py --simulate $(ARGS)"
+
+simulate-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 simulate_3d.py $(ARGS)"
 
 time-predictor:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor.py --time-predictor $(ARGS)"

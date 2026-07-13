@@ -118,7 +118,7 @@ class FenicsxSimulation(metaclass=abc.ABCMeta):
         # Find the facets on the top boundary
         entities = locate_entities(mesh, fdim, marker)
 
-        mesh.topology.create_connectivity(fdim, 2)
+        mesh.topology.create_connectivity(fdim, mesh_dim)
         nodes = locate_dofs_topological(V, fdim, entities)
 
         coords_dtype = coords.dtype
@@ -210,7 +210,7 @@ class FenicsxSimulation(metaclass=abc.ABCMeta):
         for mesh, facet_info in facet_info.items():
             dx_ = Measure("dx", domain=mesh)
             v = TestFunction(V)
-            L = inner(Constant(mesh, np.array([0.0] * self.dim)), v) * dx_
+            L = inner(Constant(mesh, np.zeros(self.dim, dtype=default_scalar_type)), v) * dx_
             facet_indices = np.hstack(facet_info[0]).astype(np.int32)
             facet_markers = np.hstack(facet_info[1]).astype(np.int32)
             sorted_facets = np.argsort(facet_indices)
@@ -353,7 +353,7 @@ class FenicsxSimulation(metaclass=abc.ABCMeta):
     def export_results(self) -> None:
         for key, var in self._plot_variables().items():
             if var[1] == "node":
-                proj_func_space = functionspace(self.mesh, ("CG", 1, (2,)))
+                proj_func_space = functionspace(self.mesh, ("CG", 1, (self.dim,)))
             elif var[1] == "element":
                 proj_func_space = functionspace(self.mesh, ("DG", 0))
 
@@ -600,10 +600,10 @@ class StructuralSimulation(FenicsxSimulation):
         }
 
     def _define_functionspace(self) -> None:
-        self.V = functionspace(self.mesh, (*self.element_type_disps, (2,)))
+        self.V = functionspace(self.mesh, (*self.element_type_disps, (self.dim,)))
         self.W = functionspace(self.mesh, self.element_type_stress)
-        self.We = functionspace(self.mesh, (*self.element_type_stress, (2, 2)))
-        self.Z = functionspace(self.mesh, (*self.element_type_stress, (2, 2)))
+        self.We = functionspace(self.mesh, (*self.element_type_stress, (self.dim, self.dim)))
+        self.Z = functionspace(self.mesh, (*self.element_type_stress, (self.dim, self.dim)))
 
     def _init_variables(self) -> None:
         # Material parameters
@@ -624,6 +624,8 @@ class StructuralSimulation(FenicsxSimulation):
         self.H = self.E * 0.05
 
         # PDE variables
+        if len(self.body_force) != self.dim:
+            self.body_force = np.zeros(self.dim)
         self.f = Constant(self.mesh, self.body_force)  # Force term
 
         self.u_k = Function(self.V, name="Displacement")
@@ -662,9 +664,9 @@ class StructuralSimulation(FenicsxSimulation):
         overlap_nodes_global,
     ) -> tuple:
 
-        V_t = functionspace(mesh_t, (*self.element_type_disps, (2,)))
+        V_t = functionspace(mesh_t, (*self.element_type_disps, (self.dim,)))
         W_t = functionspace(mesh_t, self.element_type_stress)
-        We_t = functionspace(mesh_t, (*self.element_type_stress, (2, 2)))
+        We_t = functionspace(mesh_t, (*self.element_type_stress, (self.dim, self.dim)))
 
         self.f_res = Function(V_t)
         self.u_next_t = Function(V_t)
