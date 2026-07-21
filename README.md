@@ -6,7 +6,7 @@
 > **Companion repository** to the paper:
 >
 > *"Accelerating Transient Structural Dynamics via SPILS-Net, a Physics-Derived Latent Space Subdomain Surrogate"*
-> — *Andino Börst et al.*, *Computer Methods in Applied Mechanics and Engineering*, 2026. DOI: `https://doi.org/10.1016/j.cma.2026.119234`
+> — *Andino Börst et al.*, *Computer Methods in Applied Mechanics and Engineering*, 2026. DOI: `10.1016/j.cma.2026.119234`
 
 This repository provides all the code needed to **reproduce the numerical results** presented in the paper. It is designed to be fully reproducible — either inside the provided Docker Dev Container (recommended for FEM simulations) or in a local Python virtual environment (for training and evaluating the neural-network predictors only).
 
