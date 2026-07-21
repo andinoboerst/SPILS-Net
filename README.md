@@ -251,7 +251,7 @@ If you use this code in your research, please cite the associated paper and this
   author={Börst, Andino and Díez, Pedro and Zlotnik, Sergio and Cavaliere, Fabiola and Curtosi, Gabriel and Larráyoz, Xabier},
   journal={Computer Methods in Applied Mechanics and Engineering},
   year={2026},
-  doi={[DOI — to be added upon publication]}
+  doi={10.1016/j.cma.2026.119234}
 }
 ```
 
