@@ -4,7 +4,8 @@
 IMAGE_NAME = spils-net-repro
 CONTAINER_NAME = spils-net-instance
 
-.PHONY: build run train-lstm train-spilsnet simulate smoke-test test clean help dev-local dev-pypi
+.PHONY: build run train-lstm train-spilsnet simulate smoke-test test clean help dev-local dev-pypi \
+        simulate-3d verify-fem-3d generate-3d train-3d train-lstm-3d apply-3d apply-lstm-3d
 
 help:
 	@echo "SPILS-Net Reproduction Makefile"
@@ -14,7 +15,13 @@ help:
 	@echo "  make train          Train the SPILS-Net model (runs inside Docker)"
 	@echo "  make train-lstm     Train the LSTM baseline (runs inside Docker)"
 	@echo "  make simulate       Run the full FEM simulation (runs inside Docker)"
-	@echo "  make simulate-3d    Run the full 3D FEM simulation (runs inside Docker)"
+	@echo "  make simulate-3d    Run the 3D FEM simulation + GIF export"
+	@echo "  make verify-fem-3d  Extract tractions, re-apply (no ML), report error"
+	@echo "  make generate-3d    Generate 3D multi-frequency training dataset"
+	@echo "  make train-3d       Train the 3D SPILS-Net model"
+	@echo "  make train-lstm-3d  Train the 3D LSTM baseline"
+	@echo "  make apply-3d       Evaluate 3D SPILS-Net against FEM"
+	@echo "  make apply-lstm-3d  Evaluate 3D LSTM against FEM"
 	@echo "  make smoke-test     Run lightweight ML tests (can be run locally or in Docker)"
 	@echo "  make dev-local      Install the local spilsnet-torch in editable mode for dev"
 	@echo "  make dev-pypi       Install the PyPI-released spilsnet-torch (v1.0.1)"
@@ -49,6 +56,24 @@ simulate:
 
 simulate-3d:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 simulate_3d.py $(ARGS)"
+
+verify-fem-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --verify-fem $(ARGS)"
+
+generate-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --generate $(ARGS)"
+
+train-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --train $(ARGS)"
+
+train-lstm-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --method lstm --train $(ARGS)"
+
+apply-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --apply $(ARGS)"
+
+apply-lstm-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --method lstm --apply $(ARGS)"
 
 time-predictor:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor.py --time-predictor $(ARGS)"
