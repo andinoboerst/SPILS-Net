@@ -19,7 +19,7 @@ def main():
         configuration="scaled"
     )
 
-    # sim.time_total = 0.002
+    sim.time_total = 0.002
     
     logger.info("Running full simulation...")
     sim.run()
