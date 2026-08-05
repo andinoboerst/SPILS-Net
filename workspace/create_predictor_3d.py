@@ -197,7 +197,7 @@ def verify_fem(config: Sim3DConfig):
     suffix = f"verify_3d_{config.constitutive_law}_f{config.frequency}"
 
     # Full-domain: z-displacement
-    extractor.postprocess("u", "u", "z", name=f"{suffix}_full")
+    extractor.postprocess("u", "u", "norm", name=f"{suffix}_full")
 
     # Reduced-domain: per-node displacement error magnitude  |u_ext - u_app|
     # Shape: (num_steps, n_bottom_nodes, 3)
@@ -205,7 +205,7 @@ def verify_fem(config: Sim3DConfig):
     error_norm = np.linalg.norm(error_u, axis=-1)  # (time, nodes) – scalar per node
 
     # postprocess accepts a raw ndarray as `scalars`; vectors=None to disable warping
-    applicator.postprocess(error_norm, None, None, name=f"{suffix}_error")
+    applicator.postprocess(error_norm, "u", None, name=f"{suffix}_error")
 
     logger.info("Exported %s_full.gif and %s_error.gif", suffix, suffix)
     return rel_error
@@ -404,9 +404,9 @@ def main():
     parser = argparse.ArgumentParser(description="3D SPILS-Net Predictor Tool")
     parser.add_argument("--method",   type=str, choices=["lstm", "spils_net"], default="spils_net")
     parser.add_argument("--version",  type=str, default="01",  help="Predictor version label")
-    parser.add_argument("--law",      type=str, choices=["elastic", "plastic"], default="elastic")
+    parser.add_argument("--law",      type=str, choices=["elastic", "plastic"], default="plastic")
     parser.add_argument("--freq",     type=int, default=1000,  help="Simulation frequency [Hz]")
-    parser.add_argument("--time-total", type=float, default=0.002,
+    parser.add_argument("--time-total", type=float, default=0.001,
                         help="Simulation time limit in seconds (default 0.002). "
                              "Set a large value or comment out in code for a full run.")
 
