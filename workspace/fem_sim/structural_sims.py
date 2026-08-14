@@ -303,20 +303,30 @@ class FenicsxSimulation(metaclass=abc.ABCMeta):
         )
         solver = NewtonSolver(MPI.COMM_WORLD, problem)
 
-        solver.max_it = 1000  # Increase max iterations
-        solver.relaxation_parameter = 0.8  # Can reduce to 0.8 if needed
-        solver.damping = 0.5  # Reduce the step size to stabilize convergence
-        solver.ls = "bt"  # Use backtracking line search
-        solver.convergence_criterion = "residual"
-        solver.atol = 1e-8  # Absolute tolerance (adjust based on problem size)
-        solver.rtol = 1e-6  # Relative tolerance
+        # --- Original parameters (kept for reference / rollback) ---
+        # solver.max_it = 1000
+        # solver.relaxation_parameter = 0.8
+        # solver.damping = 0.5
+        # solver.ls = "bt"
+        # solver.convergence_criterion = "residual"
+        # solver.atol = 1e-10
+        # solver.rtol = 1e-8
+        # KSP: gmres  /  PC: gamg
+        # ---------------------------------------------------------
+
+        # Tuned parameters for plasticity convergence with tight tolerances
+        solver.max_it = 200
+        solver.relaxation_parameter = 1.0   # Full Newton steps (line search handles damping)
+        solver.convergence_criterion = "residual"  # Check residual
+        solver.atol = 1e-8
+        solver.rtol = 1e-6
+
         ksp = solver.krylov_solver
         opts = PETSc.Options()
         option_prefix = ksp.getOptionsPrefix()
-        opts[f"{option_prefix}ksp_type"] = "gmres"
-        opts[f"{option_prefix}pc_type"] = "gamg"
-        # opts[f"{option_prefix}pc_factork_mat_solver_type"] = "mumps"
-        # opts[f"{option_prefix}pc_factor_levels"] = 5
+        opts[f"{option_prefix}ksp_type"] = "preonly"
+        opts[f"{option_prefix}pc_type"] = "lu"
+        opts[f"{option_prefix}pc_factor_mat_solver_type"] = "superlu_dist"
         ksp.setFromOptions()
 
         solver.solve = partial(solver.solve, u)
@@ -680,12 +690,12 @@ class StructuralSimulation(FenicsxSimulation):
         # Full simulation
         self.overlapping_dofs_V = self.get_dofs(overlap_nodes_global)
         self.overlapping_dofs_W = overlap_cells_global
-        self.overlapping_dofs_We = self.get_dofs(overlap_cells_global, value_dim=2)
+        self.overlapping_dofs_We = self.get_dofs(overlap_cells_global, value_dim=self.dim)
 
         # Traction extraction
         self.overlapping_dofs_V_t = self.get_dofs(overlap_nodes_local)
         self.overlapping_dofs_W_t = overlap_cells_local
-        self.overlapping_dofs_We_t = self.get_dofs(overlap_cells_local, value_dim=2)
+        self.overlapping_dofs_We_t = self.get_dofs(overlap_cells_local, value_dim=self.dim)
 
         self.interface_dofs_t = self.get_dofs(interface_nodes_t)
 
