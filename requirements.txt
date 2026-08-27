@@ -18,11 +18,10 @@ numpy>=1.26,<3
 scikit-learn>=1.5,<2
 
 # Deep learning
-torch>=2.2,<3
-torchvision>=0.17,<1
+torch>=2.0
+torch-geometric>=2.5
 lion-pytorch>=0.2,<1
 safetensors>=0.4,<1
-spilsnet-torch==1.0.1
 
 # Hyperparameter tuning
 ray[tune]>=2.10,<3

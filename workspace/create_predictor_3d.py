@@ -45,10 +45,24 @@ except (RuntimeError, ModuleNotFoundError) as _e:
     FEM_AVAILABLE = False
 
 # Neural-network predictors
+import os
+import sys
+
+if not os.environ.get("USE_PYPI_SPILSNET"):
+    for _p in [Path("/spilsnet-torch"), Path("../spilsnet-torch"), Path("../../spilsnet-torch")]:
+        if _p.exists() and (_p / "spilsnet").exists():
+            _res = str(_p.resolve())
+            if _res not in sys.path:
+                sys.path.insert(0, _res)
+            break
+
 from nn_predictors.misc import train_val_test_split_tct
-from nn_predictors.lstm import LSTMNetwork
-from spilsnet import SPILSNet, set_seed
-from spilsnet_params import SPILSNET_SCALED_PARAMETERS
+try:
+    from nn_predictors.lstm import LSTMNetwork
+except (ImportError, ModuleNotFoundError):
+    LSTMNetwork = None
+from spilsnet import SPILSNet, SPILSNetGraph, set_seed
+from spilsnet_params import SPILSNET_SCALED_PARAMETERS, SPILSNET_3D_GNN_PARAMETERS
 
 set_seed(8)
 
@@ -57,6 +71,9 @@ set_seed(8)
 # Project paths
 # ---------------------------------------------------------------------------
 DATA_FOLDER    = Path("training_data_3d")
+if not (DATA_FOLDER / "training_in_3d_plastic_x.npz").exists() and (Path("workspace/training_data_3d") / "training_in_3d_plastic_x.npz").exists():
+    DATA_FOLDER = Path("workspace/training_data_3d")
+
 MODEL_FOLDER   = Path("surrogate_models_3d")
 RESULTS_FOLDER = Path("results_3d")
 
@@ -425,6 +442,40 @@ def train_spils_net(config: Sim3DConfig, resume: bool = False):
     logger.info("Training complete in %.2fs", time.time() - t0)
 
 
+def load_interface_topology(config: Sim3DConfig) -> np.ndarray:
+    """Load interface connectivity topology map from training_data_3d folder."""
+    topo_path = DATA_FOLDER / f"interface_topology_3d_{config.constitutive_law}.npz"
+    if not topo_path.exists():
+        topo_path = DATA_FOLDER / "interface_topology_3d_plastic.npz"
+    if not topo_path.exists():
+        raise FileNotFoundError(f"Topology map file not found at {topo_path}")
+
+    with open(topo_path, "rb") as f:
+        topo_data = np.load(f)
+        return topo_data["connectivity"]
+
+
+def train_spils_net_gnn(config: Sim3DConfig, resume: bool = False):
+    """Train or resume a GNN-based SPILS-Net model for 3D unstructured node interfaces."""
+    tag        = config.constitutive_law
+    model_path = MODEL_FOLDER / f"model_3d_{tag}_spils_net_gnn_v{config.predictor_version}"
+
+    x_full, _, y, internal = load_dataset(config)
+    connectivity = load_interface_topology(config)
+
+    if resume:
+        logger.info("Resuming SPILS-Net GNN (3D) training from %s", model_path)
+        reg = SPILSNetGraph.load(str(model_path))
+    else:
+        logger.info("Starting new SPILS-Net GNN (3D) training  v%s", config.predictor_version)
+        reg = SPILSNetGraph(connectivity=connectivity, save_path=str(model_path), **SPILSNET_3D_GNN_PARAMETERS)
+
+    logger.info("Trainable parameters: %d", reg.get_trainable_params())
+    t0 = time.time()
+    reg.fit(x_full, y, internal, train_indices=config.train_sims, val_indices=config.val_sims, test_indices=config.test_sims)
+    logger.info("Training complete in %.2fs", time.time() - t0)
+
+
 def load_lstm(config: Sim3DConfig) -> LSTMNetwork:
     tag        = config.constitutive_law
     x_full, _, y, _ = load_dataset(config)
@@ -440,6 +491,15 @@ def load_spils_net(config: Sim3DConfig) -> SPILSNet:
     x_full, _, y, internal = load_dataset(config)
     model_path      = MODEL_FOLDER / f"model_3d_{tag}_spils_net_v{config.predictor_version}"
     predictor       = SPILSNet.load(f"{model_path}_best")
+    predictor.prep_data(x_full, internal, y, train_indices=config.train_sims, val_indices=config.val_sims, test_indices=config.test_sims)
+    return predictor
+
+
+def load_spils_net_gnn(config: Sim3DConfig) -> SPILSNetGraph:
+    tag             = config.constitutive_law
+    x_full, _, y, internal = load_dataset(config)
+    model_path      = MODEL_FOLDER / f"model_3d_{tag}_spils_net_gnn_v{config.predictor_version}"
+    predictor       = SPILSNetGraph.load(f"{model_path}_best")
     predictor.prep_data(x_full, internal, y, train_indices=config.train_sims, val_indices=config.val_sims, test_indices=config.test_sims)
     return predictor
 
@@ -487,17 +547,56 @@ def evaluate_model(predictor: Any, config: Sim3DConfig):
     logger.info("Global Relative Error: %.4f%%", global_err * 100)
 
     final_error  = errors / max(np.max(truth_norms), 1e-10)
-    suffix = f"3d_{config.constitutive_law}_{config.predictor_method}_v{config.predictor_version}_f{config.frequency}"
-
     tct_predict.format_results()
     tct_error.format_results()
 
-    np.save(RESULTS_FOLDER / f"results_error_{suffix}.npy",    final_error)
-    np.save(RESULTS_FOLDER / f"results_in_{suffix}.npy",       tct_predict.data_in)
-    np.save(RESULTS_FOLDER / f"results_out_{suffix}.npy",      tct_predict.data_out)
-    np.save(RESULTS_FOLDER / f"results_internal_{suffix}.npy", tct_predict.data_internal)
+    suffix_tct = f"3d_{config.constitutive_law}_f{config.frequency}"
+    suffix_sm  = f"3d_{config.constitutive_law}_{config.predictor_method}_v{config.predictor_version}_f{config.frequency}"
+
+    if config.constitutive_law == "plastic" and hasattr(tct_error, "data_plastic_top"):
+        try:
+            from sklearn.decomposition import PCA
+            pca = PCA(n_components=PCA_N_COMPONENTS)
+            tct_data_internal = pca.fit_transform(tct_error.data_plastic_top[1:]).ravel()
+        except Exception:
+            tct_data_internal = tct_error.data_plastic_top[1:].mean(axis=1)
+    else:
+        tct_data_internal = np.zeros(tct_error.data_in.shape[0])
+
+    # Full FEM Ground Truth
+    np.save(RESULTS_FOLDER / f"tct_results_in_{suffix_tct}.npy",       tct_error.data_in)
+    np.save(RESULTS_FOLDER / f"tct_results_out_{suffix_tct}.npy",      tct_error.data_out)
+    np.save(RESULTS_FOLDER / f"tct_results_internal_{suffix_tct}.npy", tct_data_internal)
+
+    # SM Prediction Results
+    np.save(RESULTS_FOLDER / f"sm_results_error_{suffix_sm}.npy",    final_error)
+    np.save(RESULTS_FOLDER / f"sm_results_in_{suffix_sm}.npy",       tct_predict.data_in)
+    np.save(RESULTS_FOLDER / f"sm_results_out_{suffix_sm}.npy",      tct_predict.data_out)
+    np.save(RESULTS_FOLDER / f"sm_results_internal_{suffix_sm}.npy", tct_predict.data_internal)
 
     logger.info("Results saved to %s/", RESULTS_FOLDER)
+
+    # --- Export GIF animations for visual deformation inspection ---
+    gif_suffix = f"apply_3d_{config.constitutive_law}_{config.predictor_method}_v{config.predictor_version}_f{config.frequency}"
+    logger.info("Exporting deformation animations (%s_full.gif and %s_error.gif)…", gif_suffix, gif_suffix)
+
+    # 1. Full-domain reference FEM deformation GIF
+    try:
+        tct_error.postprocess("u", "u", "norm", name=f"{gif_suffix}_full")
+    except Exception as e:
+        logger.warning("Could not export full-domain GIF: %s", e)
+
+    # 2. Reduced-domain per-node displacement error magnitude GIF
+    try:
+        ext_u_bottom = tct_error.formatted_plot_results["u"][:, tct_error.bottom_half_nodes, :]
+        app_u = tct_predict.formatted_plot_results["u"]
+        error_u = ext_u_bottom - app_u
+        error_norm = np.linalg.norm(error_u, axis=-1)
+
+        tct_predict.postprocess(error_norm, "u", None, name=f"{gif_suffix}_error")
+        logger.info("Deformation GIFs exported successfully to current directory.")
+    except Exception as e:
+        logger.warning("Could not export error-field GIF: %s", e)
 
 
 def apply_lstm(config: Sim3DConfig):
@@ -508,17 +607,21 @@ def apply_spils_net(config: Sim3DConfig):
     evaluate_model(load_spils_net(config), config)
 
 
+def apply_spils_net_gnn(config: Sim3DConfig):
+    evaluate_model(load_spils_net_gnn(config), config)
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
 def main():
     parser = argparse.ArgumentParser(description="3D SPILS-Net Predictor Tool")
-    parser.add_argument("--method",   type=str, choices=["lstm", "spils_net"], default="spils_net")
+    parser.add_argument("--method",   type=str, choices=["lstm", "spils_net", "spils_net_gnn"], default="spils_net_gnn")
     parser.add_argument("--version",  type=str, default="01",  help="Predictor version label")
     parser.add_argument("--law",      type=str, choices=["elastic", "plastic"], default="plastic")
     parser.add_argument("--freq",     type=int, default=1000,  help="Simulation frequency [Hz]")
-    parser.add_argument("--time-total", type=float, default=0.0015,
+    parser.add_argument("--time-total", type=float, default=0.001,
                         help="Simulation time limit in seconds (default 0.002). "
                              "Set a large value or comment out in code for a full run.")
 
@@ -556,6 +659,8 @@ def main():
     if args.train:
         if config.predictor_method == "lstm":
             train_lstm(config, resume=args.resume)
+        elif config.predictor_method == "spils_net_gnn":
+            train_spils_net_gnn(config, resume=args.resume)
         else:
             train_spils_net(config, resume=args.resume)
         did_something = True
@@ -563,6 +668,8 @@ def main():
     if args.apply:
         if config.predictor_method == "lstm":
             apply_lstm(config)
+        elif config.predictor_method == "spils_net_gnn":
+            apply_spils_net_gnn(config)
         else:
             apply_spils_net(config)
         did_something = True
@@ -573,3 +680,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

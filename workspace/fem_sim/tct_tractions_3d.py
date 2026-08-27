@@ -40,7 +40,7 @@ class TCTApplyTractions3D(TCTSimulation3D):
 
     def __init__(self, predictor, *args, **kwargs) -> None:
         self.predictor = predictor
-        if isinstance(self.predictor, SPILSNet):
+        if isinstance(self.predictor, SPILSNet) or hasattr(self.predictor, "internal_scaler"):
             self.save_internal_state = True
         else:
             self.save_internal_state = False
@@ -61,7 +61,7 @@ class TCTApplyTractions3D(TCTSimulation3D):
 
         self.data_in[self.step, :] = np.concatenate([self.u_next.x.array[self.interface_dofs], self.v_next.x.array[self.interface_dofs], self.a_next.x.array[self.interface_dofs]])
 
-        if self.save_internal_state:
+        if self.save_internal_state and hasattr(self.predictor, "internal_scaler") and hasattr(self.predictor, "hidden_state") and self.predictor.hidden_state is not None:
             self.data_internal[self.step] = self.predictor.internal_scaler.inverse_transform(self.predictor.hidden_state.detach().cpu().numpy())
 
         if isinstance(self.predictor, SPILSNet):

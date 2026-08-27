@@ -94,3 +94,52 @@ SPILSNET_SCALED_PARAMETERS = {
     "internal_out_scaler_class": MinMaxScaler(feature_range=(-1, 1)),
     "output_scaler_class": MinMaxScaler(feature_range=(-1, 1)),
 }
+
+
+# -----------------------------------------------------------------------------
+# 3D GNN Configuration (Unstructured 2D interface in 3D domain)
+# -----------------------------------------------------------------------------
+SPILSNET_3D_GNN_CONFIG = {
+    "dimension": 3,
+    "input_size": 453,  # 151 interface nodes * 3 DOFs
+    "internal_state_size": 1,
+    "conv_type": "SAGE",
+    "encoder_structure": [
+        {"out": 32},
+        {"out": 64},
+        {"out": 64},
+    ],
+    "skip_target_nodes": 6,
+    "latent_dim": 64,
+    "latent_encoder_mlp": [64],
+    "gru_hidden_size": 64,
+    "gru_layers": 1,
+    "internal_input_mlp": [32],
+    "internal_output_mlp": [32],
+    "latent_decoder_structure": [128, 128],
+    "use_decoder_conv": True,
+    "dropout_rate": 0.05,
+}
+
+
+SPILSNET_3D_GNN_HYPERPARAMETERS = {
+    "learning_rate": 0.01,
+    "batch_size": 2048,
+    "num_epochs": 5000,
+    "weight_decay": 0.01,
+    "early_stop_patience": 50,
+    "loss_alpha": 0.9,
+    "loss_beta": 0.1,
+    "loss_gamma": 0.0,
+}
+
+
+SPILSNET_3D_GNN_PARAMETERS = {
+    "model_config": SPILSNET_3D_GNN_CONFIG,
+    "hyperparameters": SPILSNET_3D_GNN_HYPERPARAMETERS,
+    "input_scaler_class": MinMaxScaler(feature_range=(-1, 1)),
+    "internal_in_scaler_class": MinMaxScaler(feature_range=(-1, 1)),
+    "internal_out_scaler_class": MinMaxScaler(feature_range=(-1, 1)),
+    "output_scaler_class": MinMaxScaler(feature_range=(-1, 1)),
+}
+

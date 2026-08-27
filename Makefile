@@ -66,11 +66,17 @@ generate-3d:
 train-3d:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --train $(ARGS)"
 
+train-gnn-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --method spils_net_gnn --train $(ARGS)"
+
 train-lstm-3d:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --method lstm --train $(ARGS)"
 
 apply-3d:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --apply $(ARGS)"
+
+apply-gnn-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --method spils_net_gnn --apply $(ARGS)"
 
 apply-lstm-3d:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --method lstm --apply $(ARGS)"
@@ -90,18 +96,11 @@ smoke-test:
 
 dev-local:
 	@echo "Configuring environment to use the local spilsnet-torch codebase..."
-	@if [ -d /spilsnet-torch ]; then \
-		pip install -e /spilsnet-torch; \
-	elif [ -d ../spilsnet-torch ]; then \
-		pip install -e ../spilsnet-torch; \
-	else \
-		echo "Error: Sibling directory '../spilsnet-torch' not found."; \
-		exit 1; \
-	fi
+	docker compose run --rm spils-net /bin/bash -c "if [ -d /spilsnet-torch ]; then pip install -e /spilsnet-torch; elif [ -d ../spilsnet-torch ]; then pip install -e ../spilsnet-torch; else echo 'Error: /spilsnet-torch not found.'; exit 1; fi"
 
 dev-pypi:
 	@echo "Configuring environment to use PyPI release spilsnet-torch==1.0.1..."
-	pip install --force-reinstall spilsnet-torch==1.0.1
+	docker compose run --rm spils-net /bin/bash -c "pip install --force-reinstall spilsnet-torch==1.0.1"
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
