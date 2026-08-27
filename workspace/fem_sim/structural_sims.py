@@ -309,24 +309,25 @@ class FenicsxSimulation(metaclass=abc.ABCMeta):
         # solver.damping = 0.5
         # solver.ls = "bt"
         # solver.convergence_criterion = "residual"
-        # solver.atol = 1e-10
-        # solver.rtol = 1e-8
+        # solver.atol = 1e-8
+        # solver.rtol = 1e-6
         # KSP: gmres  /  PC: gamg
         # ---------------------------------------------------------
 
         # Tuned parameters for plasticity convergence with tight tolerances
-        solver.max_it = 200
-        solver.relaxation_parameter = 1.0   # Full Newton steps (line search handles damping)
+        solver.max_it = 1000
+        solver.relaxation_parameter = 0.8   # Full Newton steps (line search handles damping)
+        solver.damping = 0.5
         solver.convergence_criterion = "residual"  # Check residual
-        solver.atol = 1e-8
+        solver.atol = 1e-6
         solver.rtol = 1e-6
 
         ksp = solver.krylov_solver
         opts = PETSc.Options()
         option_prefix = ksp.getOptionsPrefix()
-        opts[f"{option_prefix}ksp_type"] = "preonly"
-        opts[f"{option_prefix}pc_type"] = "lu"
-        opts[f"{option_prefix}pc_factor_mat_solver_type"] = "superlu_dist"
+        opts[f"{option_prefix}ksp_type"] = "gmres"
+        opts[f"{option_prefix}pc_type"] = "gamg"
+        # opts[f"{option_prefix}pc_factor_mat_solver_type"] = "superlu_dist"
         ksp.setFromOptions()
 
         solver.solve = partial(solver.solve, u)

@@ -66,6 +66,9 @@ for _folder in [DATA_FOLDER, MODEL_FOLDER, RESULTS_FOLDER]:
 
 DEFAULT_TRAIN_SIMS, DEFAULT_VAL_SIMS, DEFAULT_TEST_SIMS = train_val_test_split_tct()
 
+# PCA rank for the plastic-top field saved into the training set.
+PCA_N_COMPONENTS = 1
+
 
 # ---------------------------------------------------------------------------
 # Config dataclass
@@ -94,6 +97,74 @@ def _load_npz(path: Path) -> np.ndarray:
     with open(path, "rb") as f:
         data = np.load(f)
         return data[list(data.keys())[0]]
+
+
+def _append_npz(path: Path, sample: np.ndarray) -> None:
+    """Append one simulation (axis 0) to a compressed npz, creating the file if needed."""
+    sample = np.asarray(sample)
+    if sample.ndim == 2:
+        sample = sample[np.newaxis, ...]
+    if path.exists():
+        data = np.concatenate([_load_npz(path), sample], axis=0)
+    else:
+        data = sample
+    np.savez_compressed(path, data)
+
+
+def _n_samples(path: Path) -> int:
+    return 0 if not path.exists() else int(_load_npz(path).shape[0])
+
+
+def _trim_npz(path: Path, n: int) -> None:
+    if not path.exists():
+        return
+    arr = _load_npz(path)
+    if arr.shape[0] > n:
+        logger.warning("Trimming extra samples in %s (%d → %d)", path.name, arr.shape[0], n)
+        np.savez_compressed(path, arr[:n])
+
+
+def _completed_frequencies(
+    freq_path: Path,
+    save_paths: List[Path],
+    frequency_range: List[int],
+) -> List[int]:
+    """Frequencies already stored, in sample order.
+
+    Prefers an explicit frequency index file. If it is missing, assumes the
+    existing samples are the first N entries of ``frequency_range`` (sequential
+    generation from the start). Incomplete last writes are trimmed to match.
+    """
+    if freq_path.exists():
+        freqs = [int(f) for f in np.atleast_1d(_load_npz(freq_path))]
+    else:
+        existing = [p for p in save_paths if p.exists()]
+        n = min((_n_samples(p) for p in existing), default=0)
+        missing = [p.name for p in save_paths if not p.exists()]
+        if missing and n:
+            logger.warning(
+                "Missing %s; assuming the %d existing sample(s) are frequencies %s.",
+                missing,
+                n,
+                frequency_range[:n],
+            )
+        freqs = list(frequency_range[:n])
+        if freqs:
+            logger.warning(
+                "No %s found; assuming %d saved simulation(s) are frequencies %s.",
+                freq_path.name,
+                len(freqs),
+                freqs,
+            )
+            np.savez_compressed(freq_path, np.asarray(freqs, dtype=np.int32))
+
+    n = len(freqs)
+    # Drop a partial last write only. Do not wipe existing data when n == 0.
+    if n > 0:
+        _trim_npz(freq_path, n)
+        for path in save_paths:
+            _trim_npz(path, n)
+    return freqs
 
 
 def _make_extractor(config: Sim3DConfig) -> "TCTExtractTractions3D":
@@ -212,64 +283,105 @@ def verify_fem(config: Sim3DConfig):
 
 
 def generate_training_set(config: Sim3DConfig):
-    """Generate a training dataset using multiple FEM simulations."""
+    """Generate a training dataset using multiple FEM simulations.
+
+    Each simulation is appended to disk immediately so a later OOM can be
+    resumed from the last completed frequency.
+    """
     logger.info("Generating 3D training set  (law=%s)…", config.constitutive_law)
 
-    frequency_range = range(500, 2001, int(1500 / 21))
-    training_in, training_out, plastic_top = [], [], []
+    tag = config.constitutive_law
+    in_path = DATA_FOLDER / f"training_in_3d_{tag}_x.npz"
+    out_path = DATA_FOLDER / f"training_out_3d_{tag}.npz"
+    plastic_path = DATA_FOLDER / f"plastic_top_reduced_3d_{tag}.npz"
+    freq_path = DATA_FOLDER / f"training_freqs_3d_{tag}.npz"
+    topo_path = DATA_FOLDER / f"interface_topology_3d_{tag}.npz"
+    pca_path = DATA_FOLDER / "plastic_top_3d_for_pca.npz"
 
-    pca_path = DATA_FOLDER / f"plastic_top_{config.constitutive_law}_for_pca.npz"
-    pca = PCA(n_components=1)
-    generate_pca_data = not (config.constitutive_law == "plastic" and pca_path.exists())
+    save_paths = [in_path, out_path]
+    if config.constitutive_law == "plastic":
+        save_paths.append(plastic_path)
+
+    frequency_range = list(range(500, 2001, int(1500 / 21)))
+    completed_freqs = _completed_frequencies(freq_path, save_paths, frequency_range)
+    completed_set = set(completed_freqs)
+    remaining = [f for f in frequency_range if f not in completed_set]
+    if completed_freqs:
+        next_freq = remaining[0] if remaining else None
+        logger.info(
+            "Resuming: %d / %d frequencies already saved %s. Next: %s Hz.",
+            len(completed_freqs),
+            len(frequency_range),
+            completed_freqs,
+            next_freq,
+        )
+
+    pca = None
+    if config.constitutive_law == "plastic":
+        if pca_path.exists():
+            try:
+                pca = PCA(n_components=PCA_N_COMPONENTS)
+                pca.fit(_load_npz(pca_path))
+                logger.info("Fitted PCA (%d component(s)) from %s", PCA_N_COMPONENTS, pca_path.name)
+            except Exception as e:
+                logger.warning("Could not load PCA data: %s. Will regenerate from the first simulation.", e)
+                pca = None
+        if pca is None and completed_freqs:
+            raise RuntimeError(
+                f"Cannot resume: {pca_path} is missing or unreadable, but "
+                f"{len(completed_freqs)} reduced plastic samples are already saved. "
+                "The first simulation's full plastic field is required to fit PCA."
+            )
 
     for i, freq in enumerate(frequency_range):
-        logger.info("  Sim %d/22 – freq %d Hz", i + 1, freq)
-        cfg_i         = Sim3DConfig(constitutive_law=config.constitutive_law, frequency=freq, time_total=config.time_total)
-        tct           = _make_extractor(cfg_i)
+        if freq in completed_set:
+            logger.info("  Skipping sim %d/%d – freq %d Hz (already saved)", i + 1, len(frequency_range), freq)
+            continue
+
+        logger.info("  Sim %d/%d – freq %d Hz", i + 1, len(frequency_range), freq)
+        cfg_i = Sim3DConfig(
+            constitutive_law=config.constitutive_law,
+            frequency=freq,
+            time_total=config.time_total,
+        )
+        tct = _make_extractor(cfg_i)
         tct.run()
 
-        if i == 0 and generate_pca_data and config.constitutive_law == "plastic":
-            with open(pca_path, "wb") as f:
-                np.savez_compressed(f, tct.data_plastic_top)
-            pca.fit(tct.data_plastic_top)
+        if not topo_path.exists():
+            coords, connectivity = tct.get_interface_topology()
+            np.savez_compressed(topo_path, coords=coords, connectivity=connectivity)
 
-        training_in.append(tct.data_in)
-        training_out.append(tct.data_out)
+        n_iface = tct.data_in.shape[-1] // 3  # data_in = [u | v | a]
+        _append_npz(in_path, tct.data_in[:, :n_iface])
+        _append_npz(out_path, tct.data_out)
         if config.constitutive_law == "plastic":
-            plastic_top.append(tct.data_plastic_top)
+            if pca is None:
+                np.savez_compressed(pca_path, tct.data_plastic_top)
+                pca = PCA(n_components=PCA_N_COMPONENTS)
+                pca.fit(tct.data_plastic_top)
+                logger.info("Saved full plastic field for PCA → %s", pca_path.name)
+            _append_npz(plastic_path, pca.transform(tct.data_plastic_top))
+        _append_npz(freq_path, np.array([freq], dtype=np.int32))
+        completed_set.add(freq)
+
+        logger.info("  Saved simulation %d (freq %d Hz) → %s", i + 1, freq, DATA_FOLDER)
         del tct
-
-    training_in = np.array(training_in)
-    n_iface = training_in.shape[2] // 3  # input = [u | v | a], each of length n_iface
-
-    tag = config.constitutive_law
-    np.savez_compressed(DATA_FOLDER / f"training_in_{tag}_x.npz", training_in[:, :, :n_iface])
-    np.savez_compressed(DATA_FOLDER / f"training_in_{tag}_v.npz", training_in[:, :, n_iface:2*n_iface])
-    np.savez_compressed(DATA_FOLDER / f"training_in_{tag}_a.npz", training_in[:, :, 2*n_iface:])
-    np.savez_compressed(DATA_FOLDER / f"training_out_{tag}.npz",  np.array(training_out))
-
-    if config.constitutive_law == "plastic":
-        np.savez_compressed(DATA_FOLDER / f"plastic_top_reduced_{tag}.npz", np.array(plastic_top))
 
     logger.info("Training set generation complete.")
 
 
 def load_dataset(config: Sim3DConfig) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Load training data (X = [u|v|a], Y = tractions, internal = plastic state)."""
+    """Load training data (X = displacements, Y = tractions, internal = plastic state)."""
     tag = config.constitutive_law
     logger.info("Loading 3D dataset  (tag=%s)…", tag)
-    x = _load_npz(DATA_FOLDER / f"training_in_{tag}_x.npz")
-    v = _load_npz(DATA_FOLDER / f"training_in_{tag}_v.npz")
-    a = _load_npz(DATA_FOLDER / f"training_in_{tag}_a.npz")
-    y = _load_npz(DATA_FOLDER / f"training_out_{tag}.npz")
+    x = _load_npz(DATA_FOLDER / f"training_in_3d_{tag}_x.npz")
+    y = _load_npz(DATA_FOLDER / f"training_out_3d_{tag}.npz")
 
     internal = np.array([])
     if config.constitutive_law == "plastic":
-        internal = _load_npz(DATA_FOLDER / f"plastic_top_reduced_{tag}.npz")
+        internal = _load_npz(DATA_FOLDER / f"plastic_top_reduced_3d_{tag}.npz")
 
-    # SPILS-Net expects input = [u | v | a] concatenated
-    x_full = np.concatenate([x, v, a], axis=2)
-    return x_full, v, y, internal
+    return x, np.array([]), y, internal
 
 
 def train_lstm(config: Sim3DConfig, resume: bool = False):
@@ -406,7 +518,7 @@ def main():
     parser.add_argument("--version",  type=str, default="01",  help="Predictor version label")
     parser.add_argument("--law",      type=str, choices=["elastic", "plastic"], default="plastic")
     parser.add_argument("--freq",     type=int, default=1000,  help="Simulation frequency [Hz]")
-    parser.add_argument("--time-total", type=float, default=0.001,
+    parser.add_argument("--time-total", type=float, default=0.0015,
                         help="Simulation time limit in seconds (default 0.002). "
                              "Set a large value or comment out in code for a full run.")
 

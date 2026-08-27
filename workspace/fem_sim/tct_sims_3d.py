@@ -294,6 +294,30 @@ class TCTSimulation3D(StructuralSimulation):
         self.interface_nodes = self.interface_nodes[ind]
 
 
+    def get_interface_topology(self) -> tuple:
+        # 1. Coordinates of the sorted interface nodes
+        coords = self.V.tabulate_dof_coordinates()[self.interface_nodes]
+        
+        # 2. Connectivity
+        fdim = self.mesh_t.topology.dim - 1
+        vdim = 0
+        self.mesh_t.topology.create_connectivity(fdim, vdim)
+        facet_to_vertex = self.mesh_t.topology.connectivity(fdim, vdim)
+        
+        # Map from full mesh node to the index in the sorted interface_nodes
+        global_to_sorted_idx = {global_node: j for j, global_node in enumerate(self.interface_nodes)}
+        
+        connectivity = []
+        for facet in self.interface_facets:
+            local_nodes = facet_to_vertex.links(facet)
+            global_nodes = [self.bottom_half_nodes[ln] for ln in local_nodes]
+            # Some interface facets might be on the exterior but not strictly the interface we are modeling,
+            # though interface_facets was constructed to only have interface nodes.
+            sorted_indices = [global_to_sorted_idx[gn] for gn in global_nodes]
+            connectivity.append(sorted_indices)
+            
+        return coords, np.array(connectivity, dtype=np.int32)
+
     def _preprocess(self) -> None:
         super()._preprocess()
 
