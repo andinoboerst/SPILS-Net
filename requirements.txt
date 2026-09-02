@@ -22,6 +22,7 @@ torch>=2.0
 torch-geometric>=2.5
 lion-pytorch>=0.2,<1
 safetensors>=0.4,<1
+spilsnet-torch>=1.1.0
 
 # Hyperparameter tuning
 ray[tune]>=2.10,<3

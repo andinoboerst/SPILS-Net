@@ -62,7 +62,11 @@ try:
 except (ImportError, ModuleNotFoundError):
     LSTMNetwork = None
 from spilsnet import SPILSNet, SPILSNetGraph, set_seed
-from spilsnet_params import SPILSNET_SCALED_PARAMETERS, SPILSNET_3D_GNN_PARAMETERS
+from spilsnet_params import (
+    SPILSNET_SCALED_PARAMETERS,
+    SPILSNET_3D_GNN_PARAMETERS,
+    SPILSNET_3D_GNN_POS_PARAMETERS,
+)
 
 set_seed(8)
 
@@ -432,6 +436,8 @@ def train_spils_net(config: Sim3DConfig, resume: bool = False):
     if resume:
         logger.info("Resuming SPILS-Net (3D) training from %s", model_path)
         reg = SPILSNet.load(str(model_path))
+        if hasattr(reg, "optimizer_state_dict") and reg.optimizer_state_dict is not None and not reg.optimizer_state_dict.get("param_groups"):
+            reg.optimizer_state_dict = None
     else:
         logger.info("Starting new SPILS-Net (3D) training  v%s", config.predictor_version)
         reg = SPILSNet(save_path=str(model_path), **SPILSNET_SCALED_PARAMETERS)
@@ -442,8 +448,8 @@ def train_spils_net(config: Sim3DConfig, resume: bool = False):
     logger.info("Training complete in %.2fs", time.time() - t0)
 
 
-def load_interface_topology(config: Sim3DConfig) -> np.ndarray:
-    """Load interface connectivity topology map from training_data_3d folder."""
+def load_interface_topology(config: Sim3DConfig) -> Tuple[np.ndarray, np.ndarray]:
+    """Load interface connectivity and coordinates from training_data_3d folder."""
     topo_path = DATA_FOLDER / f"interface_topology_3d_{config.constitutive_law}.npz"
     if not topo_path.exists():
         topo_path = DATA_FOLDER / "interface_topology_3d_plastic.npz"
@@ -452,7 +458,9 @@ def load_interface_topology(config: Sim3DConfig) -> np.ndarray:
 
     with open(topo_path, "rb") as f:
         topo_data = np.load(f)
-        return topo_data["connectivity"]
+        coords = topo_data["coords"] if "coords" in topo_data else None
+        connectivity = topo_data["connectivity"]
+        return coords, connectivity
 
 
 def train_spils_net_gnn(config: Sim3DConfig, resume: bool = False):
@@ -461,14 +469,44 @@ def train_spils_net_gnn(config: Sim3DConfig, resume: bool = False):
     model_path = MODEL_FOLDER / f"model_3d_{tag}_spils_net_gnn_v{config.predictor_version}"
 
     x_full, _, y, internal = load_dataset(config)
-    connectivity = load_interface_topology(config)
+    _, connectivity = load_interface_topology(config)
 
     if resume:
         logger.info("Resuming SPILS-Net GNN (3D) training from %s", model_path)
         reg = SPILSNetGraph.load(str(model_path))
+        if hasattr(reg, "optimizer_state_dict") and reg.optimizer_state_dict is not None and not reg.optimizer_state_dict.get("param_groups"):
+            reg.optimizer_state_dict = None
     else:
         logger.info("Starting new SPILS-Net GNN (3D) training  v%s", config.predictor_version)
         reg = SPILSNetGraph(connectivity=connectivity, save_path=str(model_path), **SPILSNET_3D_GNN_PARAMETERS)
+
+    logger.info("Trainable parameters: %d", reg.get_trainable_params())
+    t0 = time.time()
+    reg.fit(x_full, y, internal, train_indices=config.train_sims, val_indices=config.val_sims, test_indices=config.test_sims)
+    logger.info("Training complete in %.2fs", time.time() - t0)
+
+
+def train_spils_net_gnn_pos(config: Sim3DConfig, resume: bool = False):
+    """Train or resume a GNN-based SPILS-Net model with interface node coordinates."""
+    tag        = config.constitutive_law
+    model_path = MODEL_FOLDER / f"model_3d_{tag}_spils_net_gnn_pos_v{config.predictor_version}"
+
+    x_full, _, y, internal = load_dataset(config)
+    coords, connectivity = load_interface_topology(config)
+
+    if resume:
+        logger.info("Resuming SPILS-Net GNN Pos (3D) training from %s", model_path)
+        reg = SPILSNetGraph.load(str(model_path))
+        if hasattr(reg, "optimizer_state_dict") and reg.optimizer_state_dict is not None and not reg.optimizer_state_dict.get("param_groups"):
+            reg.optimizer_state_dict = None
+    else:
+        logger.info("Starting new SPILS-Net GNN with Node Positions (3D) training  v%s", config.predictor_version)
+        reg = SPILSNetGraph(
+            connectivity=connectivity,
+            node_coordinates=coords,
+            save_path=str(model_path),
+            **SPILSNET_3D_GNN_POS_PARAMETERS,
+        )
 
     logger.info("Trainable parameters: %d", reg.get_trainable_params())
     t0 = time.time()
@@ -499,6 +537,15 @@ def load_spils_net_gnn(config: Sim3DConfig) -> SPILSNetGraph:
     tag             = config.constitutive_law
     x_full, _, y, internal = load_dataset(config)
     model_path      = MODEL_FOLDER / f"model_3d_{tag}_spils_net_gnn_v{config.predictor_version}"
+    predictor       = SPILSNetGraph.load(f"{model_path}_best")
+    predictor.prep_data(x_full, internal, y, train_indices=config.train_sims, val_indices=config.val_sims, test_indices=config.test_sims)
+    return predictor
+
+
+def load_spils_net_gnn_pos(config: Sim3DConfig) -> SPILSNetGraph:
+    tag             = config.constitutive_law
+    x_full, _, y, internal = load_dataset(config)
+    model_path      = MODEL_FOLDER / f"model_3d_{tag}_spils_net_gnn_pos_v{config.predictor_version}"
     predictor       = SPILSNetGraph.load(f"{model_path}_best")
     predictor.prep_data(x_full, internal, y, train_indices=config.train_sims, val_indices=config.val_sims, test_indices=config.test_sims)
     return predictor
@@ -554,11 +601,18 @@ def evaluate_model(predictor: Any, config: Sim3DConfig):
     suffix_sm  = f"3d_{config.constitutive_law}_{config.predictor_method}_v{config.predictor_version}_f{config.frequency}"
 
     if config.constitutive_law == "plastic" and hasattr(tct_error, "data_plastic_top"):
-        try:
-            from sklearn.decomposition import PCA
-            pca = PCA(n_components=PCA_N_COMPONENTS)
-            tct_data_internal = pca.fit_transform(tct_error.data_plastic_top[1:]).ravel()
-        except Exception:
+        pca_path = DATA_FOLDER / "plastic_top_3d_for_pca.npz"
+        if pca_path.exists():
+            try:
+                from sklearn.decomposition import PCA
+                pca = PCA(n_components=PCA_N_COMPONENTS)
+                pca.fit(_load_npz(pca_path))
+                tct_data_internal = pca.transform(tct_error.data_plastic_top[1:]).ravel()
+            except Exception as e:
+                logger.warning("Could not transform plastic data with saved PCA (%s): %s", pca_path, e)
+                tct_data_internal = tct_error.data_plastic_top[1:].mean(axis=1)
+        else:
+            logger.warning("PCA file %s not found. Falling back to mean.", pca_path)
             tct_data_internal = tct_error.data_plastic_top[1:].mean(axis=1)
     else:
         tct_data_internal = np.zeros(tct_error.data_in.shape[0])
@@ -611,13 +665,23 @@ def apply_spils_net_gnn(config: Sim3DConfig):
     evaluate_model(load_spils_net_gnn(config), config)
 
 
+def apply_spils_net_gnn_pos(config: Sim3DConfig):
+    evaluate_model(load_spils_net_gnn_pos(config), config)
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
 def main():
     parser = argparse.ArgumentParser(description="3D SPILS-Net Predictor Tool")
-    parser.add_argument("--method",   type=str, choices=["lstm", "spils_net", "spils_net_gnn"], default="spils_net_gnn")
+    parser.add_argument(
+        "--method",
+        type=str,
+        choices=["lstm", "spils_net", "spils_net_gnn", "spils_net_gnn_pos"],
+        default="spils_net_gnn",
+        help="Predictor method architecture",
+    )
     parser.add_argument("--version",  type=str, default="01",  help="Predictor version label")
     parser.add_argument("--law",      type=str, choices=["elastic", "plastic"], default="plastic")
     parser.add_argument("--freq",     type=int, default=1000,  help="Simulation frequency [Hz]")
@@ -661,6 +725,8 @@ def main():
             train_lstm(config, resume=args.resume)
         elif config.predictor_method == "spils_net_gnn":
             train_spils_net_gnn(config, resume=args.resume)
+        elif config.predictor_method == "spils_net_gnn_pos":
+            train_spils_net_gnn_pos(config, resume=args.resume)
         else:
             train_spils_net(config, resume=args.resume)
         did_something = True
@@ -670,6 +736,8 @@ def main():
             apply_lstm(config)
         elif config.predictor_method == "spils_net_gnn":
             apply_spils_net_gnn(config)
+        elif config.predictor_method == "spils_net_gnn_pos":
+            apply_spils_net_gnn_pos(config)
         else:
             apply_spils_net(config)
         did_something = True

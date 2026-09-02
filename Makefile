@@ -5,27 +5,32 @@ IMAGE_NAME = spils-net-repro
 CONTAINER_NAME = spils-net-instance
 
 .PHONY: build run train-lstm train-spilsnet simulate smoke-test test clean help dev-local dev-pypi \
-        simulate-3d verify-fem-3d generate-3d train-3d train-lstm-3d apply-3d apply-lstm-3d
+        simulate-3d verify-fem-3d generate-3d train-3d train-lstm-3d apply-3d apply-lstm-3d \
+        generate-inv-3d train-inv-3d train-gnn-inv-3d train-lstm-inv-3d apply-inv-3d apply-gnn-inv-3d apply-lstm-inv-3d
 
 help:
 	@echo "SPILS-Net Reproduction Makefile"
 	@echo "Usage:"
-	@echo "  make build          Build the Docker image"
-	@echo "  make run            Open a shell inside the container"
-	@echo "  make train          Train the SPILS-Net model (runs inside Docker)"
-	@echo "  make train-lstm     Train the LSTM baseline (runs inside Docker)"
-	@echo "  make simulate       Run the full FEM simulation (runs inside Docker)"
-	@echo "  make simulate-3d    Run the 3D FEM simulation + GIF export"
-	@echo "  make verify-fem-3d  Extract tractions, re-apply (no ML), report error"
-	@echo "  make generate-3d    Generate 3D multi-frequency training dataset"
-	@echo "  make train-3d       Train the 3D SPILS-Net model"
-	@echo "  make train-lstm-3d  Train the 3D LSTM baseline"
-	@echo "  make apply-3d       Evaluate 3D SPILS-Net against FEM"
-	@echo "  make apply-lstm-3d  Evaluate 3D LSTM against FEM"
-	@echo "  make smoke-test     Run lightweight ML tests (can be run locally or in Docker)"
-	@echo "  make dev-local      Install the local spilsnet-torch in editable mode for dev"
-	@echo "  make dev-pypi       Install the PyPI-released spilsnet-torch (v1.0.1)"
-	@echo "  make clean          Remove temporary files and caches"
+	@echo "  make build               Build the Docker image"
+	@echo "  make run                 Open a shell inside the container"
+	@echo "  make train               Train the SPILS-Net model (runs inside Docker)"
+	@echo "  make train-lstm          Train the LSTM baseline (runs inside Docker)"
+	@echo "  make simulate            Run the full FEM simulation (runs inside Docker)"
+	@echo "  make simulate-3d         Run the 3D FEM simulation + GIF export"
+	@echo "  make verify-fem-3d       Extract tractions, re-apply (no ML), report error"
+	@echo "  make generate-3d         Generate 3D multi-frequency training dataset"
+	@echo "  make train-3d            Train the 3D SPILS-Net model"
+	@echo "  make train-lstm-3d       Train the 3D LSTM baseline"
+	@echo "  make apply-3d            Evaluate 3D SPILS-Net against FEM"
+	@echo "  make apply-lstm-3d       Evaluate 3D LSTM against FEM"
+	@echo "  make generate-inv-3d     Generate 3D inverse training dataset (Forces -> Displacements)"
+	@echo "  make train-gnn-inv-3d    Train 3D inverse SPILS-Net GNN model"
+	@echo "  make train-lstm-inv-3d   Train 3D inverse LSTM baseline"
+	@echo "  make apply-gnn-inv-3d    Evaluate 3D inverse SPILS-Net GNN against FEM"
+	@echo "  make smoke-test          Run lightweight ML tests (can be run locally or in Docker)"
+	@echo "  make dev-local           Install the local spilsnet-torch in editable mode for dev"
+	@echo "  make dev-pypi            Install the PyPI-released spilsnet-torch (v1.0.1)"
+	@echo "  make clean               Remove temporary files and caches"
 
 build:
 	docker compose build
@@ -69,6 +74,9 @@ train-3d:
 train-gnn-3d:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --method spils_net_gnn --train $(ARGS)"
 
+train-gnn-pos-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --method spils_net_gnn_pos --train $(ARGS)"
+
 train-lstm-3d:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --method lstm --train $(ARGS)"
 
@@ -78,8 +86,32 @@ apply-3d:
 apply-gnn-3d:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --method spils_net_gnn --apply $(ARGS)"
 
+apply-gnn-pos-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --method spils_net_gnn_pos --apply $(ARGS)"
+
 apply-lstm-3d:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --method lstm --apply $(ARGS)"
+
+generate-inv-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_inv.py --generate $(ARGS)"
+
+train-inv-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_inv.py --train $(ARGS)"
+
+train-gnn-inv-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_inv.py --method spils_net_gnn --train $(ARGS)"
+
+train-lstm-inv-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_inv.py --method lstm --train $(ARGS)"
+
+apply-inv-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_inv.py --apply $(ARGS)"
+
+apply-gnn-inv-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_inv.py --method spils_net_gnn --apply $(ARGS)"
+
+apply-lstm-inv-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_inv.py --method lstm --apply $(ARGS)"
 
 time-predictor:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor.py --time-predictor $(ARGS)"
@@ -99,8 +131,8 @@ dev-local:
 	docker compose run --rm spils-net /bin/bash -c "if [ -d /spilsnet-torch ]; then pip install -e /spilsnet-torch; elif [ -d ../spilsnet-torch ]; then pip install -e ../spilsnet-torch; else echo 'Error: /spilsnet-torch not found.'; exit 1; fi"
 
 dev-pypi:
-	@echo "Configuring environment to use PyPI release spilsnet-torch==1.0.1..."
-	docker compose run --rm spils-net /bin/bash -c "pip install --force-reinstall spilsnet-torch==1.0.1"
+	@echo "Configuring environment to use PyPI release spilsnet-torch==1.1.0..."
+	docker compose run --rm spils-net /bin/bash -c "pip install --force-reinstall spilsnet-torch==1.1.0"
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
