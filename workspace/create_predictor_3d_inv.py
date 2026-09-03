@@ -68,17 +68,17 @@ set_seed(8)
 # ---------------------------------------------------------------------------
 # Project paths
 # ---------------------------------------------------------------------------
-DATA_FOLDER = Path("training_data_3d")
-if not (DATA_FOLDER / "training_in_3d_plastic_x.npz").exists() and (Path("workspace/training_data_3d") / "training_in_3d_plastic_x.npz").exists():
-    DATA_FOLDER = Path("workspace/training_data_3d")
+DATA_FOLDER = Path("training_data_3d_inv")
+if not (DATA_FOLDER / "training_in_3d_plastic_x.npz").exists() and (Path("workspace/training_data_3d_inv") / "training_in_3d_plastic_x.npz").exists():
+    DATA_FOLDER = Path("workspace/training_data_3d_inv")
 
-MODEL_FOLDER = Path("surrogate_models_3d")
-if not MODEL_FOLDER.exists() and Path("workspace/surrogate_models_3d").exists():
-    MODEL_FOLDER = Path("workspace/surrogate_models_3d")
+MODEL_FOLDER = Path("surrogate_models_3d_inv")
+if not MODEL_FOLDER.exists() and Path("workspace/surrogate_models_3d_inv").exists():
+    MODEL_FOLDER = Path("workspace/surrogate_models_3d_inv")
 
-RESULTS_FOLDER = Path("results_3d")
-if not RESULTS_FOLDER.exists() and Path("workspace/results_3d").exists():
-    RESULTS_FOLDER = Path("workspace/results_3d")
+RESULTS_FOLDER = Path("results_3d_inv")
+if not RESULTS_FOLDER.exists() and Path("workspace/results_3d_inv").exists():
+    RESULTS_FOLDER = Path("workspace/results_3d_inv")
 
 for _folder in [DATA_FOLDER, MODEL_FOLDER, RESULTS_FOLDER]:
     _folder.mkdir(parents=True, exist_ok=True)
