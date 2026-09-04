@@ -9,6 +9,11 @@ Inverse direction of create_predictor_3d.py:
   Input (X):  Interface Forces/Tractions (151 nodes * 3 DOFs = 453 features)
   Output (Y): Interface Displacements (151 nodes * 3 DOFs = 453 features)
   Internal:   Top-half plastic strain state (PCA reduced, 1 feature)
+
+Key CLI flags:
+  --verify-fem    Runs the full extractor, then applies the extracted displacements
+                  directly to the bottom-half mesh (bypassing ML), and computes
+                  the relative displacement error. Use this as a sanity check.
 """
 
 import argparse
@@ -222,18 +227,86 @@ def run_simulation(config: Sim3DConfig):
 
 
 def verify_fem(config: Sim3DConfig):
-    """FEM-only verification sanity check."""
+    """
+    FEM-only verification:
+    1. Run the full extractor to obtain interface displacements.
+    2. Feed those *true* displacements directly into the applicator (bottom-half
+       reduced domain) — bypassing any ML predictor.
+    3. Compare displacement fields and report error.
+
+    This checks whether the FEM displacement-coupling machinery works before
+    we involve a surrogate model.
+    """
     if not FEM_AVAILABLE:
         logger.error("FEM packages not available for FEM verification.")
         return 0.0
 
-    logger.info("=== FEM Verification (extract → compare) ===")
+    logger.info("=== FEM Verification (extract → apply → compare) ===")
+
+    class _TrueDisplacementPredictor:
+        """Trivial 'predictor' that replays ground-truth displacements."""
+        def __init__(self, displacement_sequence: np.ndarray) -> None:
+            self._displacements = displacement_sequence  # shape (num_steps, n_dofs)
+            self._step = 0
+
+        def initialize_memory_variables(self) -> None:
+            self._step = 0
+
+        def predict(self, *args, **kwargs) -> np.ndarray:
+            u = self._displacements[self._step]
+            self._step += 1
+            return u
+
+    # --- Step 1: extract displacements ---
+    logger.info("Step 1 / 2  –  Running full-domain FEM extractor…")
     extractor = _make_extractor(config)
     extractor.run()
-    extractor.format_results()
 
-    logger.info("FEM simulation completed successfully.")
-    return 0.0
+    n_iface = len(extractor.interface_dofs)
+    true_displacements = extractor.data_out[:, :n_iface]  # (num_steps, n_interface_dofs)
+
+    # --- Step 2: apply true displacements to the reduced domain ---
+    logger.info("Step 2 / 2  –  Applying extracted displacements to reduced domain…")
+
+    predictor_replay = _TrueDisplacementPredictor(true_displacements)
+    applicator = _make_applicator(predictor_replay, config)
+    applicator.run()
+
+    # --- Step 3: compute displacement error in the bottom-half nodes ---
+    logger.info("Computing displacement error…")
+
+    extractor.format_results()
+    applicator.format_results()
+
+    # Bottom-half DOF indices in the extractor mesh (full domain)
+    ext_u_bottom = extractor.formatted_plot_results["u"][:, extractor.bottom_half_nodes, :]
+
+    # Corresponding DOF indices in the applicator mesh (bottom half only)
+    app_u = applicator.formatted_plot_results["u"]  # all nodes = bottom half
+
+    # Relative L2 error (time-averaged)
+    diff_norm   = np.linalg.norm(ext_u_bottom - app_u, axis=-1).mean()
+    truth_norm  = np.linalg.norm(ext_u_bottom, axis=-1).mean()
+    rel_error   = diff_norm / max(truth_norm, 1e-12)
+
+    logger.info("Verification complete.  Relative displacement error: %.4f%%", rel_error * 100)
+
+    # Export GIFs for visual inspection
+    suffix = f"verify_3d_inv_{config.constitutive_law}_f{config.frequency}"
+
+    # Full-domain: z-displacement
+    extractor.postprocess("u", "u", "norm", name=f"{suffix}_full")
+
+    # Reduced-domain: per-node displacement error magnitude  |u_ext - u_app|
+    # Shape: (num_steps, n_bottom_nodes, 3)
+    error_u = ext_u_bottom - app_u  # (time, nodes, 3)
+    error_norm = np.linalg.norm(error_u, axis=-1)  # (time, nodes) – scalar per node
+
+    # postprocess accepts a raw ndarray as `scalars`; vectors=None to disable warping
+    applicator.postprocess(error_norm, "u", None, name=f"{suffix}_error")
+
+    logger.info("Exported %s_full.gif and %s_error.gif", suffix, suffix)
+    return rel_error
 
 
 def generate_training_set(config: Sim3DConfig):
@@ -619,7 +692,7 @@ def main():
                         help="Simulation time limit in seconds (default 0.001). Set None for full run.")
 
     parser.add_argument("--simulate",   action="store_true", help="Run single full FEM simulation + GIF export")
-    parser.add_argument("--verify-fem", action="store_true", help="FEM sanity-check run")
+    parser.add_argument("--verify-fem", action="store_true", help="Extract displacements, re-apply them (no ML), compute error")
     parser.add_argument("--generate",   action="store_true", help="Generate multi-frequency inverse training dataset")
     parser.add_argument("--train",      action="store_true", help="Train the inverse model")
     parser.add_argument("--apply",      action="store_true", help="Evaluate the inverse model against FEM ground truth")

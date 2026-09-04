@@ -6,7 +6,7 @@ CONTAINER_NAME = spils-net-instance
 
 .PHONY: build run train-lstm train-spilsnet simulate smoke-test test clean help dev-local dev-pypi \
         simulate-3d verify-fem-3d generate-3d train-3d train-lstm-3d apply-3d apply-lstm-3d \
-        generate-inv-3d train-inv-3d train-gnn-inv-3d train-lstm-inv-3d apply-inv-3d apply-gnn-inv-3d apply-lstm-inv-3d
+        verify-fem-3d-inv generate-inv-3d train-inv-3d train-gnn-inv-3d train-lstm-inv-3d apply-inv-3d apply-gnn-inv-3d apply-lstm-inv-3d
 
 help:
 	@echo "SPILS-Net Reproduction Makefile"
@@ -18,6 +18,7 @@ help:
 	@echo "  make simulate            Run the full FEM simulation (runs inside Docker)"
 	@echo "  make simulate-3d         Run the 3D FEM simulation + GIF export"
 	@echo "  make verify-fem-3d       Extract tractions, re-apply (no ML), report error"
+	@echo "  make verify-fem-3d-inv   Extract displacements, re-apply (no ML), report error"
 	@echo "  make generate-3d         Generate 3D multi-frequency training dataset"
 	@echo "  make train-3d            Train the 3D SPILS-Net model"
 	@echo "  make train-lstm-3d       Train the 3D LSTM baseline"
@@ -91,6 +92,9 @@ apply-gnn-pos-3d:
 
 apply-lstm-3d:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d.py --method lstm --apply $(ARGS)"
+
+verify-fem-3d-inv:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_inv.py --verify-fem $(ARGS)"
 
 generate-inv-3d:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_inv.py --generate $(ARGS)"

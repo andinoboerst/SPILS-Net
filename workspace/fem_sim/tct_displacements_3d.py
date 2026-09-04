@@ -75,7 +75,7 @@ class TCTApplyDisplacements3D(TCTSimulation3D):
         self.data_internal = np.zeros(self.num_steps)
 
         self.dirichlet_interface_marker = 88
-        self.add_dirichlet_bc(self.interface_nodes_local, self.dirichlet_interface_marker)
+        self.add_dirichlet_bc(self.interface_nodes, self.dirichlet_interface_marker)
 
     def _solve_time_step(self) -> None:
         # 1. Obtain interface force before solving
