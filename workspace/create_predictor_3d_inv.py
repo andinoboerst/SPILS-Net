@@ -565,6 +565,10 @@ def evaluate_model(predictor: Any, config: Sim3DConfig):
     """
     Evaluate an inverse predictor (Forces -> Displacements) against full FEM ground truth.
     """
+    if not FEM_AVAILABLE:
+        logger.error("FEM packages not available for model evaluation.")
+        return
+
     logger.info("Evaluating 3D Inverse Predictor (Forces -> Displacements)…")
     try:
         predictor.calculate_test_metrics()
@@ -572,98 +576,124 @@ def evaluate_model(predictor: Any, config: Sim3DConfig):
         logger.warning("calculate_test_metrics error: %s", e)
     predictor.initialize_memory_variables()
 
-    # Obtain reference ground truth simulation data
-    tct_truth = None
-    if FEM_AVAILABLE:
-        try:
-            logger.info("Running full FEM reference simulation at %d Hz…", config.frequency)
-            tct_truth = _make_extractor(config)
-            tct_truth.run()
-            tct_truth.format_results()
-            n_iface = len(tct_truth.interface_dofs)
-            true_forces = tct_truth.data_in                     # Forces extracted BEFORE solve_u [T, 453]
-            true_disps  = tct_truth.data_out[:, :n_iface]       # Displacements extracted AFTER solve_u [T, 453]
-            if config.constitutive_law == "plastic" and hasattr(tct_truth, "data_plastic_top"):
-                pca_path = DATA_FOLDER / "plastic_top_3d_for_pca.npz"
-                if pca_path.exists():
-                    try:
-                        pca = PCA(n_components=PCA_N_COMPONENTS)
-                        pca.fit(_load_npz(pca_path))
-                        tct_data_internal = pca.transform(tct_truth.data_plastic_top[1:]).ravel()
-                    except Exception as e:
-                        logger.warning("Could not transform plastic data with saved PCA (%s): %s", pca_path, e)
-                        tct_data_internal = tct_truth.data_plastic_top[1:].mean(axis=1)
-                else:
-                    logger.warning("PCA file %s not found. Falling back to mean.", pca_path)
-                    tct_data_internal = tct_truth.data_plastic_top[1:].mean(axis=1)
-            else:
-                tct_data_internal = np.zeros(true_forces.shape[0])
-        except Exception as e:
-            logger.warning("FEM reference simulation failed (%s), loading saved test simulation data.", e)
-            tct_truth = None
+    tct_predict = _make_applicator(predictor, config)
+    tct_error   = _make_extractor(config)
 
-    if tct_truth is None:
-        # Load from saved dataset using test simulation index
-        test_sim_idx = config.test_sims[0] if config.test_sims else 4
-        forces_all, _, disps_all, internal_all = load_dataset(config)
-        true_forces = forces_all[test_sim_idx]
-        true_disps  = disps_all[test_sim_idx]
-        if internal_all.size > 0:
-            tct_data_internal = internal_all[test_sim_idx].ravel()
-        else:
-            tct_data_internal = np.zeros(true_forces.shape[0])
+    tct_predict.setup()
+    tct_error.setup()
 
-    num_steps = len(true_forces)
-    logger.info("Evaluating inverse surrogate model across %d time steps…", num_steps)
+    tct_predict.export_results()
+    tct_error.export_results()
 
-    pred_disps = []
-    pred_internals = []
-    errors = []
-    truth_norms = []
+    # DOFs for ALL nodes in the remaining domain (bottom half)
+    predict_dofs = tct_predict.get_dofs(tct_predict.bottom_half_nodes)
+    error_dofs   = tct_error.get_dofs(tct_error.bottom_half_nodes)
 
-    for step in range(num_steps):
-        f_step = true_forces[step]
-        u_true = true_disps[step]
+    # DOFs for nodes on the interface
+    predict_iface_dofs = tct_predict.interface_dofs
+    error_iface_dofs   = tct_error.interface_dofs
 
-        u_pred = predictor.predict(f_step)
-        pred_disps.append(u_pred)
+    errors, truth_norms = [], []
+    iface_errors, iface_truth_norms = [], []
 
-        if hasattr(predictor, "internal_scaler") and hasattr(predictor, "hidden_state") and predictor.hidden_state is not None:
-            z_val = predictor.internal_scaler.inverse_transform(predictor.hidden_state.detach().cpu().numpy())
-            pred_internals.append(float(np.ravel(z_val)[0]))
-        else:
-            pred_internals.append(0.0)
+    logger.info("Starting evaluation loop…")
+    for step in progressbar(range(tct_predict.num_steps)):
+        tct_predict.step = step
+        tct_error.step   = step
 
-        step_err = np.linalg.norm(u_true - u_pred)
-        step_norm = np.linalg.norm(u_true)
-        errors.append(step_err)
-        truth_norms.append(step_norm)
+        tct_predict.advance_time()
+        tct_error.advance_time()
 
-    pred_disps     = np.array(pred_disps)
-    pred_internals = np.array(pred_internals)
-    errors         = np.array(errors)
-    truth_norms    = np.array(truth_norms)
+        tct_predict.solve_time_step()
+        tct_error.solve_time_step()
 
-    global_err = np.linalg.norm(errors) / max(np.linalg.norm(truth_norms), 1e-10)
-    logger.info("Global Relative Displacement Error: %.4f%%", global_err * 100)
+        # Displacement error across ALL nodes in the remaining domain
+        u_true = tct_error.u_next.x.array[error_dofs]
+        u_pred = tct_predict.u_next.x.array[predict_dofs]
+
+        errors.append(np.linalg.norm(u_true - u_pred))
+        truth_norms.append(np.linalg.norm(u_true))
+
+        # Displacement error on interface nodes
+        u_true_iface = tct_error.u_next.x.array[error_iface_dofs]
+        u_pred_iface = tct_predict.u_next.x.array[predict_iface_dofs]
+
+        iface_errors.append(np.linalg.norm(u_true_iface - u_pred_iface))
+        iface_truth_norms.append(np.linalg.norm(u_true_iface))
+
+    errors       = np.array(errors)
+    truth_norms  = np.array(truth_norms)
+    global_err   = np.linalg.norm(errors) / max(np.linalg.norm(truth_norms), 1e-10)
+    logger.info("Global Relative Error: %.4f%%", global_err * 100)
+
+    iface_errors      = np.array(iface_errors)
+    iface_truth_norms = np.array(iface_truth_norms)
+    iface_err         = np.linalg.norm(iface_errors) / max(np.linalg.norm(iface_truth_norms), 1e-10)
+    logger.info("Interface Relative Error: %.4f%%", iface_err * 100)
 
     final_error = errors / max(np.max(truth_norms), 1e-10)
+
+    tct_predict.format_results()
+    tct_error.format_results()
 
     suffix_tct = f"3d_{config.constitutive_law}_inv_f{config.frequency}"
     suffix_sm  = f"3d_{config.constitutive_law}_{config.predictor_method}_inv_v{config.predictor_version}_f{config.frequency}"
 
+    if config.constitutive_law == "plastic" and hasattr(tct_error, "data_plastic_top"):
+        pca_path = DATA_FOLDER / "plastic_top_3d_for_pca.npz"
+        if not pca_path.exists():
+            for alt in [Path("training_data_3d") / "plastic_top_3d_for_pca.npz", Path("workspace/training_data_3d") / "plastic_top_3d_for_pca.npz"]:
+                if alt.exists():
+                    pca_path = alt
+                    break
+        if pca_path.exists():
+            try:
+                pca = PCA(n_components=PCA_N_COMPONENTS)
+                pca.fit(_load_npz(pca_path))
+                tct_data_internal = pca.transform(tct_error.data_plastic_top[1:]).ravel()
+            except Exception as e:
+                logger.warning("Could not transform plastic data with saved PCA (%s): %s", pca_path, e)
+                tct_data_internal = tct_error.data_plastic_top[1:].mean(axis=1)
+        else:
+            logger.warning("PCA file %s not found. Falling back to mean.", pca_path)
+            tct_data_internal = tct_error.data_plastic_top[1:].mean(axis=1)
+    else:
+        tct_data_internal = np.zeros(tct_error.data_in.shape[0])
+
     # Full FEM Ground Truth
-    np.save(RESULTS_FOLDER / f"tct_results_in_{suffix_tct}.npy",       true_forces)
-    np.save(RESULTS_FOLDER / f"tct_results_out_{suffix_tct}.npy",      true_disps)
-    np.save(RESULTS_FOLDER / f"tct_results_internal_{suffix_tct}.npy", tct_data_internal[:num_steps])
+    np.save(RESULTS_FOLDER / f"tct_results_in_{suffix_tct}.npy",       tct_error.data_in)
+    np.save(RESULTS_FOLDER / f"tct_results_out_{suffix_tct}.npy",      tct_error.data_out[:, :len(tct_error.interface_dofs)])
+    np.save(RESULTS_FOLDER / f"tct_results_internal_{suffix_tct}.npy", tct_data_internal)
 
     # SM Prediction Results
     np.save(RESULTS_FOLDER / f"sm_results_error_{suffix_sm}.npy",    final_error)
-    np.save(RESULTS_FOLDER / f"sm_results_in_{suffix_sm}.npy",       true_forces)
-    np.save(RESULTS_FOLDER / f"sm_results_out_{suffix_sm}.npy",      pred_disps)
-    np.save(RESULTS_FOLDER / f"sm_results_internal_{suffix_sm}.npy", pred_internals)
+    np.save(RESULTS_FOLDER / f"sm_results_in_{suffix_sm}.npy",       tct_predict.data_in)
+    np.save(RESULTS_FOLDER / f"sm_results_out_{suffix_sm}.npy",      tct_predict.data_out[:, :len(tct_predict.interface_dofs)])
+    np.save(RESULTS_FOLDER / f"sm_results_internal_{suffix_sm}.npy", tct_predict.data_internal)
 
     logger.info("Inverse prediction results successfully saved to %s/", RESULTS_FOLDER)
+
+    # --- Export GIF animations for visual deformation inspection ---
+    gif_suffix = f"apply_3d_{config.constitutive_law}_{config.predictor_method}_inv_v{config.predictor_version}_f{config.frequency}"
+    logger.info("Exporting deformation animations (%s_full.gif and %s_error.gif)…", gif_suffix, gif_suffix)
+
+    # 1. Full-domain reference FEM deformation GIF
+    try:
+        tct_error.postprocess("u", "u", "norm", name=f"{gif_suffix}_full")
+    except Exception as e:
+        logger.warning("Could not export full-domain GIF: %s", e)
+
+    # 2. Reduced-domain per-node displacement error magnitude GIF
+    try:
+        ext_u_bottom = tct_error.formatted_plot_results["u"][:, tct_error.bottom_half_nodes, :]
+        app_u = tct_predict.formatted_plot_results["u"]
+        error_u = ext_u_bottom - app_u
+        error_norm = np.linalg.norm(error_u, axis=-1)
+
+        tct_predict.postprocess(error_norm, "u", None, name=f"{gif_suffix}_error")
+        logger.info("Deformation GIFs exported successfully to current directory.")
+    except Exception as e:
+        logger.warning("Could not export error-field GIF: %s", e)
 
 
 def apply_lstm(config: Sim3DConfig):
