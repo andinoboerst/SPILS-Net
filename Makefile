@@ -117,6 +117,31 @@ apply-gnn-inv-3d:
 apply-lstm-inv-3d:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_inv.py --method lstm --apply $(ARGS)"
 
+verify-fem-3d-disc:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_disc.py --verify-fem $(ARGS)"
+
+generate-3d-disc:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_disc.py --generate $(ARGS)"
+
+train-3d-disc:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_disc.py --train $(ARGS)"
+
+train-gnn-3d-disc:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_disc.py --method spils_net_gnn --train $(ARGS)"
+
+train-lstm-3d-disc:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_disc.py --method lstm --train $(ARGS)"
+
+apply-3d-disc:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_disc.py --apply $(ARGS)"
+
+apply-gnn-3d-disc:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_disc.py --method spils_net_gnn --apply $(ARGS)"
+
+apply-lstm-3d-disc:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_disc.py --method lstm --apply $(ARGS)"
+
+
 time-predictor:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor.py --time-predictor $(ARGS)"
 
