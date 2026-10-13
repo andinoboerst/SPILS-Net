@@ -172,8 +172,18 @@ class TCTSimulation3DDisc(StructuralSimulation):
         )
 
         self.interface_nodes = interface_nodes_global_final
-        interface_nodes_local_final = np.where(np.in1d(self.bottom_half_nodes, self.interface_nodes))[0]
-        self.interface_nodes_local = interface_nodes_local_final[interface_nodes_local_final >= 0]
+
+        # Sort interface nodes consistently by physical coordinates (x, y, z)
+        coords = np.around(self.mesh.geometry.x[self.interface_nodes], decimals=3)
+        dt = [('x', coords.dtype), ('y', coords.dtype), ('z', coords.dtype)]
+        ind = np.argsort(coords.ravel().view(dt), order=['x', 'y', 'z'])
+        self.interface_nodes = self.interface_nodes[ind]
+
+        # 1-to-1 mapping from sorted global interface nodes to local nodes in mesh_bottom:
+        global_to_local_bottom = {gn: ln for ln, gn in enumerate(self.bottom_half_nodes)}
+        self.interface_nodes_local = np.array(
+            [global_to_local_bottom[gn] for gn in self.interface_nodes], dtype=np.int32
+        )
 
         mesh_bottom.topology.create_connectivity(fdim, vdim)
         facet_to_vertex_bottom = mesh_bottom.topology.connectivity(fdim, vdim)
@@ -209,9 +219,10 @@ class TCTSimulation3DDisc(StructuralSimulation):
 
         if self.use_top_half:
             self.mesh, _, _, _ = create_submesh(self.mesh, tdim, top_cells_final)
-            interface_nodes_local_final = np.where(np.in1d(self.top_half_nodes, self.interface_nodes))[0]
-
-            self.interface_nodes_local = interface_nodes_local_final[interface_nodes_local_final >= 0]
+            global_to_local_top = {gn: ln for ln, gn in enumerate(self.top_half_nodes)}
+            self.interface_nodes_local = np.array(
+                [global_to_local_top[gn] for gn in self.interface_nodes], dtype=np.int32
+            )
             self.interface_nodes = self.interface_nodes_local
 
             self.mesh.topology.create_connectivity(fdim, vdim)
@@ -231,33 +242,25 @@ class TCTSimulation3DDisc(StructuralSimulation):
             self.interface_facets = np.array(interface_facets_local, dtype=np.int32)
             self.top_half_nodes_t = np.arange(self.mesh.topology.index_map(vdim).size_local, dtype=np.int32)
 
-        V = functionspace(self.mesh, (*self.element_type_disps, (3,)))
-        coords = np.around(V.tabulate_dof_coordinates(), decimals=3)
-        coords_dtype = coords.dtype
-        dt = [('x', coords_dtype), ('y', coords_dtype), ('z', coords_dtype)]
-        ind = np.argsort(coords[self.interface_nodes].ravel().view(dt), order=['x', 'y', 'z'])
-        self.interface_nodes = self.interface_nodes[ind]
-
     def get_interface_topology(self) -> tuple:
         """
         Returns (coords, connectivity) for the discontinuous interface.
         Coordinates are sorted, and connectivity contains the triangular facets
         from both circular interface sections.
         """
-        coords = self.V.tabulate_dof_coordinates()[self.interface_nodes]
+        coords = self.mesh.geometry.x[self.interface_nodes]
 
         fdim = self.mesh_t.topology.dim - 1
         vdim = 0
         self.mesh_t.topology.create_connectivity(fdim, vdim)
         facet_to_vertex = self.mesh_t.topology.connectivity(fdim, vdim)
 
-        global_to_sorted_idx = {global_node: j for j, global_node in enumerate(self.interface_nodes)}
+        local_to_sorted_idx = {local_node: j for j, local_node in enumerate(self.interface_nodes_local)}
 
         connectivity = []
         for facet in self.interface_facets:
             local_nodes = facet_to_vertex.links(facet)
-            global_nodes = [self.bottom_half_nodes[ln] for ln in local_nodes]
-            sorted_indices = [global_to_sorted_idx[gn] for gn in global_nodes]
+            sorted_indices = [local_to_sorted_idx[ln] for ln in local_nodes]
             connectivity.append(sorted_indices)
 
         return coords, np.array(connectivity, dtype=np.int32)
