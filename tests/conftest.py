@@ -13,6 +13,15 @@ import pytest
 # These hold real trained model checkpoints produced outside of tests.
 _EXCLUDE_DIRS = {
     "workspace/surrogate_models",
+    "workspace/surrogate_models_3d",
+    "workspace/surrogate_models_3d_disc",
+    "workspace/surrogate_models_3d_inv",
+    "workspace/surrogate_models_3d_disc_inv",
+    "surrogate_models",
+    "surrogate_models_3d",
+    "surrogate_models_3d_disc",
+    "surrogate_models_3d_inv",
+    "surrogate_models_3d_disc_inv",
 }
 
 

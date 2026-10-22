@@ -47,3 +47,23 @@ Thumbs.db
 *.swp
 *.swo
 *.vscode
+# =============================================
+# Generated 3D / shell data, results, models and logs
+# (regenerate with the create_predictor_* scripts; far too large for git)
+# =============================================
+workspace/training_data_3d*/
+workspace/training_data_shell*/
+workspace/results_3d*/
+workspace/results_shell/
+workspace/surrogate_models_3d*/
+workspace/surrogate_models_shell/
+logs/
+
+# =============================================
+# Scratch scripts and ad-hoc media
+# =============================================
+workspace/scratch_*.py
+workspace/temp.py
+workspace/apply_*.gif
+workspace/verify_*.gif
+workspace/cell_*_plot.png
