@@ -6,7 +6,8 @@ CONTAINER_NAME = spils-net-instance
 
 .PHONY: build run train-lstm train-spilsnet simulate smoke-test test clean help dev-local dev-pypi \
         simulate-3d verify-fem-3d generate-3d train-3d train-lstm-3d apply-3d apply-lstm-3d \
-        verify-fem-3d-inv generate-inv-3d train-inv-3d train-gnn-inv-3d train-lstm-inv-3d apply-inv-3d apply-gnn-inv-3d apply-lstm-inv-3d \
+        verify-fem-3d-inv generate-inv-3d train-inv-3d train-gnn-inv-3d train-lstm-inv-3d apply-inv-3d apply-gnn-inv-3d apply-lstm-inv-3d train-gnn-inc-inv-3d apply-gnn-inc-inv-3d diag-loop-gain-inv-3d \
+        generate-rows-3d train-gnn-rows-3d loop-gain-rows-3d apply-gnn-rows-3d \
         verify-fem-3d-disc generate-3d-disc train-3d-disc train-gnn-3d-disc train-lstm-3d-disc apply-3d-disc apply-gnn-3d-disc apply-lstm-3d-disc \
         verify-fem-3d-disc-inv generate-inv-3d-disc train-inv-3d-disc train-gnn-inv-3d-disc train-lstm-inv-3d-disc apply-inv-3d-disc apply-gnn-inv-3d-disc apply-lstm-inv-3d-disc
 
@@ -30,6 +31,13 @@ help:
 	@echo "  make train-gnn-inv-3d       Train 3D inverse SPILS-Net GNN model"
 	@echo "  make train-lstm-inv-3d      Train 3D inverse LSTM baseline"
 	@echo "  make apply-gnn-inv-3d       Evaluate 3D inverse SPILS-Net GNN against FEM"
+	@echo "  make train-gnn-inc-inv-3d   Train 3D inverse incremental GNN ([F, u, du] -> du)"
+	@echo "  make apply-gnn-inc-inv-3d   Evaluate 3D inverse incremental GNN against FEM"
+	@echo "  make diag-loop-gain-inv-3d  Spectral radius of the inverse coupling loop (ARGS=\"--method ...\")"
+	@echo "  make generate-rows-3d       Sample u, v below the interface from true replays (ARGS=\"--sims i\")"
+	@echo "  make train-gnn-rows-3d      Train the row-input GNN (rows -> interface increment)"
+	@echo "  make loop-gain-rows-3d      Closed-loop error growth rate of the row-input GNN"
+	@echo "  make apply-gnn-rows-3d      Evaluate the row-input GNN against FEM"
 	@echo "  make verify-fem-3d-disc     Verify discontinuous 3D forward FEM traction coupling"
 	@echo "  make generate-3d-disc       Generate discontinuous 3D forward dataset (u -> F)"
 	@echo "  make train-gnn-3d-disc      Train discontinuous 3D forward SPILS-Net GNN"
@@ -126,6 +134,27 @@ apply-gnn-inv-3d:
 
 apply-lstm-inv-3d:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_inv.py --method lstm --apply $(ARGS)"
+
+train-gnn-inc-inv-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_inv.py --method spils_net_gnn_inc --train $(ARGS)"
+
+apply-gnn-inc-inv-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_inv.py --method spils_net_gnn_inc --apply $(ARGS)"
+
+diag-loop-gain-inv-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 diag_loop_gain_3d_inv.py $(ARGS)"
+
+generate-rows-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_rows.py --generate $(ARGS)"
+
+train-gnn-rows-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_rows.py --train $(ARGS)"
+
+loop-gain-rows-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_rows.py --loop-gain $(ARGS)"
+
+apply-gnn-rows-3d:
+	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_rows.py --apply $(ARGS)"
 
 verify-fem-3d-disc:
 	docker compose run --rm spils-net /bin/bash -c "cd workspace && python3 create_predictor_3d_disc.py --verify-fem $(ARGS)"
