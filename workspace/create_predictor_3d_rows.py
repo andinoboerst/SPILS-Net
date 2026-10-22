@@ -80,6 +80,11 @@ def _gnn_parameters(n_nodes: int, n_features: int, local_skip: bool, args=None) 
         # output, no dropout, and a lower learning rate with more patience for the noisy validation loss
         model_config.update({"output_activation": "none", "local_skip_on_output": True, "dropout_rate": 0.0})
         hyperparameters.update({"learning_rate": 1e-3, "early_stop_patience": 100})
+    if args is not None and getattr(args, "internal_weight", None) is not None:
+        # Weight of the internal-state term in the loss (the interface term keeps its weight)
+        hyperparameters["loss_beta"] = args.internal_weight
+    if args is not None and getattr(args, "patience", None):
+        hyperparameters["early_stop_patience"] = args.patience
     if args is not None and args.internal_noise > 0:
         hyperparameters["internal_noise_std"] = args.internal_noise
     if args is not None and args.smoothness_gamma > 0:
@@ -783,6 +788,10 @@ def main():
                         help="--apply: tie the interface to the prediction with springs of this stiffness [N/mm^3] instead of prescribing it")
     parser.add_argument("--robin-oracle", action="store_true",
                         help="--apply: replay the reference interface instead of a model (u, or u + t/k with --robin-k); exactness check")
+    parser.add_argument("--internal-weight", type=float, default=None,
+                        help="--train: weight of the internal-state loss term (default: the configuration's loss_beta)")
+    parser.add_argument("--patience", type=int, default=None,
+                        help="--train: early-stopping patience in epochs (default: the configuration's, 100 with --tuned)")
     parser.add_argument("--seed", type=int, default=None, help="--train: training seed (default: the import-time seed 8)")
     parser.add_argument("--resume-lr", type=float, default=None,
                         help="learning rate to resume a checkpoint that has no saved scheduler state")
