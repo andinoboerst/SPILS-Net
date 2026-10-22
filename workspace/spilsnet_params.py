@@ -145,6 +145,27 @@ SPILSNET_3D_GNN_PARAMETERS = {
 
 
 # -----------------------------------------------------------------------------
+# 3D Inverse Incremental GNN Configuration ("inc")
+# Inputs per node: [f^n, u^n, u^n - u^{n-1}]; output per node: u^{n+1} - u^n
+# -----------------------------------------------------------------------------
+SPILSNET_3D_GNN_INC_CONFIG = {
+    **SPILSNET_3D_GNN_CONFIG,
+    "input_size": 1359,  # 151 interface nodes * 9 features
+    "input_node_features": 9,
+}
+
+
+SPILSNET_3D_GNN_INC_PARAMETERS = {
+    "model_config": SPILSNET_3D_GNN_INC_CONFIG,
+    "hyperparameters": SPILSNET_3D_GNN_HYPERPARAMETERS,
+    "input_scaler_class": MinMaxScaler(feature_range=(-1, 1)),
+    "internal_in_scaler_class": MinMaxScaler(feature_range=(-1, 1)),
+    "internal_out_scaler_class": MinMaxScaler(feature_range=(-1, 1)),
+    "output_scaler_class": MinMaxScaler(feature_range=(-1, 1)),
+}
+
+
+# -----------------------------------------------------------------------------
 # 3D GNN Configuration with Interface Node Positions (Coordinates-aware GNN)
 # -----------------------------------------------------------------------------
 SPILSNET_3D_GNN_POS_CONFIG = {
