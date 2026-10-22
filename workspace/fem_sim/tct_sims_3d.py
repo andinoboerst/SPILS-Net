@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial import cKDTree
 import logging
 from typing import Literal
 
@@ -293,6 +294,19 @@ class TCTSimulation3D(StructuralSimulation):
         ind = np.argsort(coords[self.interface_nodes].ravel().view(dt), order=['x', 'y', 'z'])
         self.interface_nodes = self.interface_nodes[ind]
 
+
+    def traction_to_interface_order(self) -> np.ndarray:
+        """
+        Index array that reorders an interface traction vector (calculate_interface_tractions(), node order of
+        the traction space) into the node order of interface_dofs and the interface topology:
+        t[traction_to_interface_order()] lines up node by node with u[interface_dofs].
+        """
+        x_disp = self.V.tabulate_dof_coordinates()[self.interface_dofs[::self.dim] // self.dim]
+        x_trac = self.f_res.function_space.tabulate_dof_coordinates()[self.interface_dofs_t[::self.dim] // self.dim]
+        dist, nodes = cKDTree(x_trac).query(x_disp)
+        if dist.max() > 1e-8 or len(set(nodes)) != len(nodes):
+            raise RuntimeError("Interface traction and displacement nodes do not match")
+        return (self.dim * nodes[:, None] + np.arange(self.dim)).ravel()
 
     def get_interface_topology(self) -> tuple:
         # 1. Coordinates of the sorted interface nodes

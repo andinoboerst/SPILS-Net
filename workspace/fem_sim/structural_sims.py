@@ -7,7 +7,8 @@ from PIL import Image, ImageDraw
 import pyvista
 from mpi4py import MPI
 from dolfinx import default_scalar_type
-from dolfinx.fem import Constant, Function, functionspace, dirichletbc, locate_dofs_topological
+from dolfinx.fem import Constant, Function, functionspace, dirichletbc, locate_dofs_topological, form, assemble_vector, Expression
+from dolfinx.la import InsertMode
 from dolfinx.mesh import meshtags, locate_entities
 from dolfinx.plot import vtk_mesh
 from dolfinx.fem.petsc import LinearProblem, NonlinearProblem
@@ -586,8 +587,20 @@ class StructuralSimulation(FenicsxSimulation):
 
     tol = 1e-10
 
+    # Newmark parameters. They enter the compiled forms through dolfinx Constants, so changing
+    # them during a run only takes effect via set_newmark_parameters().
     beta = 0.5
     gamma = 1
+    # Optional switch to (newmark_switch_beta, newmark_switch_gamma) at this step. None keeps
+    # (beta, gamma) for the whole run, which is what all existing datasets were generated with.
+    newmark_switch_step = None
+    newmark_switch_beta = 0.25
+    newmark_switch_gamma = 0.5
+
+    # "newmark" (implicit, the setting of all existing datasets) or "explicit": central differences with a
+    # row-sum lumped mass and lumped damping (treated semi-implicitly), stable for dt below the critical step
+    # (critical_time_step()). In explicit mode dt may change between steps, e.g. through dt_schedule.
+    time_integration = "newmark"
 
     element_type_disps = ("CG", 1)
     element_type_stress = ("DG", 0)
@@ -628,6 +641,9 @@ class StructuralSimulation(FenicsxSimulation):
         self.nu = Constant(self.mesh, self.nu)
 
         self.damping = Constant(self.mesh, self.c_damping)
+
+        self.newmark_beta = Constant(self.mesh, float(self.beta))
+        self.newmark_gamma = Constant(self.mesh, float(self.gamma))
 
         self.mu = self.E / (2.0 * (1.0 + self.nu))
         self.lmbda = self.E * self.nu / ((1.0 + self.nu) * (1.0 - 2.0 * self.nu))
@@ -758,10 +774,18 @@ class StructuralSimulation(FenicsxSimulation):
         return conditional(eq(self.yield_condition(sigma_trial, eq_epsilon_p), 1), sigma_trial + self.delta_sigma(sigma_trial, eq_epsilon_p), sigma_trial)
 
     def velocity(self, u_next, u_k, v_k, a_k):
-        return v_k + (1 - self.gamma) * self.dt * a_k + self.gamma * self.dt * self.acceleration(u_next, u_k, v_k, a_k)
+        gamma = self.newmark_gamma
+        return v_k + (1 - gamma) * self.dt * a_k + gamma * self.dt * self.acceleration(u_next, u_k, v_k, a_k)
 
     def acceleration(self, u_next, u_k, v_k, a_k):
-        return (1 / self.beta) * ((self.beta - 0.5) * a_k + (1 / self.dt**2) * (u_next - u_k - self.dt * v_k))
+        beta = self.newmark_beta
+        return (1 / beta) * ((beta - 0.5) * a_k + (1 / self.dt**2) * (u_next - u_k - self.dt * v_k))
+
+    def set_newmark_parameters(self, beta: float, gamma: float) -> None:
+        self.beta = beta
+        self.gamma = gamma
+        self.newmark_beta.value = beta
+        self.newmark_gamma.value = gamma
 
     def get_constitutive_functions(self, constitutive_model, eq_epsilon_p, sigma_k, u_k) -> tuple:
         if constitutive_model == "elastic":
@@ -837,6 +861,12 @@ class StructuralSimulation(FenicsxSimulation):
             return u_problem, acceleration_problem, velocity_problem, eq_epsilon_p_problem, sigma_problem, eps_problem, sig_problem
 
     def calculate_interface_tractions(self) -> None:
+        if self.time_integration == "explicit":
+            # The traction recovery problem is built on the Newmark inertia terms; not available explicitly yet
+            if not getattr(self, "_warned_explicit_tractions", False):
+                logger.warning("Interface tractions are not implemented for explicit integration; returning NaN.")
+                self._warned_explicit_tractions = True
+            return np.full(len(self.interface_dofs_t), np.nan)
         self.sigma_k_t.x.array[self.overlapping_dofs_We_t] = self.sigma_k.x.array[self.overlapping_dofs_We].copy()
         self.eq_epsilon_p_k_t.x.array[self.overlapping_dofs_W_t] = self.eq_epsilon_p_k.x.array[self.overlapping_dofs_W].copy()
         self.u_next_t.x.array[self.overlapping_dofs_V_t] = self.u_next.x.array[self.overlapping_dofs_V].copy()
@@ -849,13 +879,104 @@ class StructuralSimulation(FenicsxSimulation):
         return self.f_res.x.array[self.interface_dofs_t].copy()
 
     def _define_differential_equations(self):
+        if self.time_integration == "explicit":
+            self._setup_explicit()
+            return
+        if self.time_integration != "newmark":
+            raise ValueError(f"Unknown time integration '{self.time_integration}'")
         self.main_problems = self.get_main_problems(self.u_next, self.v_next, self.a_next, self.u_k, self.v_k, self.a_k, self.f, self.constitutive_model, self.eq_epsilon_p_next, self.eq_epsilon_p_k, self.sigma_next, self.sigma_k)
 
-    def solve_u(self) -> None:
+    def critical_time_step(self) -> float:
+        """Estimate of the explicit stability limit: smallest tetrahedron altitude / P-wave speed."""
+        P = self.mesh.geometry.x[self.mesh.geometry.dofmap]
+        vol = np.abs(np.einsum("ij,ij->i", P[:, 1] - P[:, 0], np.cross(P[:, 2] - P[:, 0], P[:, 3] - P[:, 0]))) / 6
+        faces = [(1, 2, 3), (0, 2, 3), (0, 1, 3), (0, 1, 2)]
+        area = np.max([0.5 * np.linalg.norm(np.cross(P[:, b] - P[:, a], P[:, c] - P[:, a]), axis=1) for a, b, c in faces], axis=0)
+        E, nu = float(self.E.value), float(self.nu.value)
+        wave_speed = np.sqrt(E * (1 - nu) / ((1 + nu) * (1 - 2 * nu)) / self.rho)
+        return float(np.min(3 * vol / area) / wave_speed)
 
-        if self.step == 50:
-            self.beta = 0.25
-            self.gamma = 0.5
+    def _setup_explicit(self) -> None:
+        if self.dim != 3 or self.element_type_disps != ("CG", 1):
+            raise NotImplementedError("Explicit integration is implemented for linear tetrahedra")
+        V = self.V
+        w = TestFunction(V)
+        dx_ = Measure("dx", domain=self.mesh)
+        sigma_func, _, sigma_kwargs = self.get_constitutive_functions(self.constitutive_model, self.eq_epsilon_p_k, self.sigma_k, self.u_k)
+
+        # Internal minus external nodal forces at u_next (stress update from the state at the start of the step)
+        L = self.apply_neumann_bcs(dot(self.f, w) * dx_, self.mesh)
+        self._explicit_residual = form(inner(sigma_func(self.u_next, **sigma_kwargs), self.epsilon(w)) * dx_ - L)
+
+        # Row-sum lumping (all entries positive for P1 tetrahedra)
+        ones = Constant(self.mesh, np.ones(self.dim, dtype=default_scalar_type))
+        lumped = assemble_vector(form(inner(ones, w) * dx_))
+        lumped.scatter_reverse(InsertMode.add)
+        self._lumped_mass = self.rho * lumped.array.copy()
+        self._lumped_damping = float(self.c_damping) * lumped.array.copy()
+
+        # Dofs with a prescribed displacement: dirichletbc.set() writes only those entries
+        probe = np.full(len(self.u_next.x.array), np.nan)
+        for bc in self.get_dirichlet_bcs(self.mesh):
+            bc.set(probe)
+        self._prescribed = ~np.isnan(probe)
+
+        # Element-wise (DG0) stress and plastic-strain updates. With P1 displacements the strain is constant per
+        # cell, so interpolating at the cell equals the L2 projection of the implicit scheme, without a solve.
+        updates = [(self.eps, self.epsilon(self.u_next)), (self.sig, sigma_func(self.u_next, **sigma_kwargs))]
+        if self.constitutive_model == "plastic":
+            updates += [
+                (self.sigma_next, sigma_func(self.u_next, **sigma_kwargs)),
+                (self.eq_epsilon_p_next, self.eq_epsilon_p(self.u_next, **sigma_kwargs)),
+            ]
+        self._explicit_updates = []
+        for target, expr in updates:
+            points = target.function_space.element.interpolation_points
+            self._explicit_updates.append((target, Expression(expr, points() if callable(points) else points)))
+
+    def _solve_explicit(self) -> None:
+        dt = self.dt
+        self.update_prev_values()
+        u_k, v_k, a_k = self.u_k.x.array, self.v_k.x.array, self.a_k.x.array
+
+        u = u_k + dt * v_k + 0.5 * dt**2 * a_k
+        for bc in self.get_dirichlet_bcs(self.mesh):
+            bc.set(u)
+        self.u_next.x.array[:] = u
+
+        residual = assemble_vector(self._explicit_residual)
+        residual.scatter_reverse(InsertMode.add)
+
+        # M a + C v = -R with v = v* + dt/2 a, v* = v_k + dt/2 a_k
+        v_star = v_k + 0.5 * dt * a_k
+        a = (-residual.array - self._lumped_damping * v_star) / (self._lumped_mass + 0.5 * dt * self._lumped_damping)
+        v = v_star + 0.5 * dt * a
+        # Prescribed dofs: velocity and acceleration from divided differences of the prescribed positions.
+        # (Matching a to u and then integrating v would form a recursion whose velocity error flips sign and
+        # is scaled by dt_n / dt_{n-1} every two steps, which grows without bound when dt varies.)
+        p = self._prescribed
+        rate = (u[p] - u_k[p]) / dt
+        if getattr(self, "_prescribed_prev", None) is None:
+            a[p] = 2.0 * (rate - v_k[p]) / dt
+        else:
+            rate_prev, dt_prev = self._prescribed_prev
+            a[p] = 2.0 * (rate - rate_prev) / (dt + dt_prev)
+        v[p] = rate + 0.5 * dt * a[p]
+        self._prescribed_prev = (rate, dt)
+        self.a_next.x.array[:] = a
+        self.v_next.x.array[:] = v
+
+        # Plastic state first reads sigma_k/eq_epsilon_p_k, which stay untouched until the next step
+        for target, expr in self._explicit_updates:
+            target.interpolate(expr)
+
+    def solve_u(self) -> None:
+        if self.time_integration == "explicit":
+            self._solve_explicit()
+            return
+
+        if self.newmark_switch_step is not None and self.step == self.newmark_switch_step:
+            self.set_newmark_parameters(self.newmark_switch_beta, self.newmark_switch_gamma)
 
         self.update_prev_values()
 
